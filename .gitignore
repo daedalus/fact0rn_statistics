@@ -6,9 +6,9 @@ __pycache__/
 venv/
 env/
 
-# Results (large binaries)
-results/*.png
-results/*.csv
+# Results - uncomment to exclude generated files
+# results/*.png
+# results/*.csv
 
 # IDE
 .vscode/
