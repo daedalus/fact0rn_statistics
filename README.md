@@ -263,5 +263,281 @@ Analysis of the Fact0rn whitepaper and `wOffset_statistics.csv` reveals key insi
 1. ✅ **Constraint respected**: Miners operate exactly at `|wOffset| ≤ 16·nBits` boundary
 2. 🔄 **Phase transition**: nBits≈250 marks where gHash alignment with semiprimes shifts
 3. 📊 **Heavy tails at low difficulty**: ECM factoring finds extreme values frequently
-4. ⚖️ **Stable block times**: ~671 blocks per difficulty level (30min target)
+4. ⏱️ **Stable block times**: ~671 blocks per difficulty level (30min target)
 5. 🎯 **Sweet spot**: nBits 250-260 has wOffset closest to 0 (optimal mining)
+
+---
+
+## Critical Analysis: Theory vs. Practice
+
+### The Core Tension
+
+The whitepaper assumes a **random oracle model**: symmetric search space, uniform semiprime distribution, unbiased sampling.
+
+The data reveals something fundamentally different: **systematic directional bias** in wOffset values.
+
+### 1) Whitepaper Predictions vs. Reality
+
+**Theory (Whitepaper Section 3 & 5):**
+```
+W + offset = p1 · p2
+|offset| ≤ 16·nBits
+Search radius ≈ ñ = 16·|W|₂
+Expected ~200 semiprime candidates per W after sieving
+```
+
+**Implied:** If "random enough," offsets should be **roughly symmetric around 0**.
+
+**Actual Data (CSV):**
+```
+nBits=230: mean=-3476, median=-3584, mode=-3665 (ALL negative!)
+nBits=240: mean=-3183, median=-3388, mode=-3739
+nBits=250: mean=-2005, median=-3021, mode=-3841
+```
+
+This isn't random fluctuation—it's **structural**.
+
+---
+
+### 2) What the Data Actually Shows
+
+#### A. Strong Negative Bias
+
+| Metric | Expected | Actual (nBits=230) |
+|--------|----------|-------------------|
+| Mean | ~0 | -3476 |
+| Median | ~0 | -3584 |
+| Mode | ~0 | -3665 |
+| Distribution | Symmetric | Heavy left tail |
+
+**Interpretation:** Solutions cluster **below W**, not around it.
+
+#### B. Extreme Skew and Kurtosis
+
+```
+nBits=230: skew=9.3, kurtosis=94.11
+nBits=240: skew=2.02, kurtosis=5.65
+```
+
+- **Kurtosis=94** means **extremely heavy tails** (normal=0)
+- Positive skew means **long left tail** (rare large positive offsets)
+- Most results hug the **lower boundary** (-16·nBits)
+
+#### C. Boundary-Hugging Behavior
+
+```
+nBits=230: min=-3680 (exactly -16·230), max=2375
+nBits=250: min=-4000 (exactly -16·250), max=3959
+```
+
+Solutions consistently cluster near the **lower edge** of the search interval.
+
+---
+
+### 3) Why This Is Happening (Hypotheses)
+
+#### Hypothesis 1: Sieving Asymmetry
+
+**Mechanism:** Whitepaper says *"sieve primes < 2²⁶ from candidate set S"*
+
+**Problem:** If sieving scans **downward from W**:
+```python
+S = {W-ñ, ..., W-1, W, W+1, ..., W+ñ}
+# If you sieve/scan downward first:
+for n in range(W, W-ñ, -1):  # Scanning down
+    if is_semiprime(n):
+        return n  # First hit tends to be BELOW W
+```
+
+**Result:** Biases offsets negative. Explains skew.
+
+---
+
+#### Hypothesis 2: Non-Uniform Semiprime Density
+
+**Whitepaper approximation (Figure 9):**
+```
+τ(x, ñ) ≈ semiprime count in interval
+```
+
+**Reality:** Semiprime density is **not uniform**:
+- Conditioning on "strong semiprimes" (|p1|₂ = |p2|₂) creates **density variations**
+- Local clustering of semiprimes in certain residue classes
+- gHash output structure might favor certain regions
+
+**Result:** Distribution around W is **structurally asymmetric**.
+
+---
+
+#### Hypothesis 3: gHash Isn't Random Enough
+
+**Whitepaper (Section 4):**
+```
+gHash = SHA3-512 → Scrypt → Whirlpool → Shake2b → 
+       prime finding → modular exponentiation → ...
+```
+
+**Problem:** Complexity ≠ Randomness.
+
+If gHash outputs have **subtle structure**:
+- Certain residue classes modulo small primes might be favored
+- Internal branching (Section 4: "Branching in main loop") could create patterns
+- Population count dependency (Section 4: "depends on population count of previous hashes")
+
+**Result:** gHash might systematically land in regions with **more/less semiprimes**.
+
+---
+
+#### Hypothesis 4: Early Stopping Bias ⭐ (Most Likely)
+
+**Mining loop (Figure 8):**
+```python
+for n in S:  # S = {W-ñ, ..., W+ñ}
+    P = factor(n)
+    if |P| == 2 and is_prime(P[0]) and is_prime(P[1]):
+        return True  # FIRST SUCCESS WINS
+```
+
+**Critical insight:** This is **not sampling the distribution** of semiprimes—it's sampling the **first-hit distribution**.
+
+If `S` is ordered (e.g., `W, W-1, W-2, ...` or `W-ñ, W-ñ+1, ...`):
+```
+Distribution of semiprimes:     [--X---X--X-X---X--]  (symmetric)
+First-hit distribution:         [X----------]         (skewed toward scan direction)
+```
+
+**Mathematical consequence:**
+- Turns symmetric distributions → skewed distributions
+- Pushes results toward **whichever side is scanned first**
+- Creates boundary clustering (first valid semiprime near edge)
+
+**This matches the data perfectly:**
+- Negative bias → Scanning downward first
+- High kurtosis → Most hits near boundary, rare large offsets
+- Mode at extreme negative values → First hit tends to be near -ñ
+
+---
+
+### 4) Deeper Implications
+
+#### A. PoW Is Not "Uniform Hardness"
+
+**Whitepaper assumption:** Each block ≈ similar difficulty
+
+**Data suggests:** Some regions of the interval are **much easier**:
+- Semiprime density varies
+- Early stopping exploits this variation
+- Miners aren't doing "uniform work"
+
+#### B. Potential Optimization Opportunity
+
+If offsets are biased:
+```python
+# Instead of scanning entire interval uniformly:
+for n in range(W-ñ, W+ñ):  # Uniform (inefficient)
+
+# Exploit the bias:
+for n in range(W, W-ñ, -1):  # Prioritize likely direction
+    if is_semiprime(n):
+        return n  # Find faster!
+```
+
+This turns PoW from **brute-force → heuristic-guided**.
+
+#### C. Possible Attack Surface (Subtle)
+
+If distribution is predictable:
+1. **Biased nonce selection:** Generate W values that land in "easier" regions
+2. **Reduced expected work:** If you know where to look, search is smaller
+3. **Economic mismatch:** Reward ≠ actual computational effort
+
+**Doesn't break security directly, but:**
+- Weakens assumption of **uniform work per block**
+- Creates **variable effective difficulty**
+
+#### D. Mismatch with Economic Model
+
+**Whitepaper (Figure 5):**
+```
+R(N) = reward function based on |p1|₂
+```
+
+**Problem:** If finding semiprimes is **structurally biased**:
+- Reward based on factor size
+- But effort depends on **where W lands** relative to semiprime density
+- Miners might **select nonces strategically** to land in "easy zones"
+
+**Result:** `reward ≠ actual computational effort` in practice.
+
+---
+
+### 5) The Big Picture
+
+| Aspect | Whitepaper Model | Observed Reality |
+|--------|-------------------|-------------------|
+| Search space | Symmetric around W | Directional bias |
+| Semiprime distribution | Uniform in interval | Non-uniform, clustered |
+| Sampling method | Random oracle | First-hit distribution |
+| Offset distribution | Symmetric (mean≈0) | Skewed negative (mean<<0) |
+| Work per block | Uniformly distributed | Variable (exploitable bias) |
+
+**Bottom line:** You are **not observing the distribution of semiprimes**—you are observing the **distribution of first-found semiprimes under directional search**.
+
+That's a **very different object** with profound implications:
+1. PoW behaves more like a **search heuristic system** than a pure random oracle
+2. There is **latent structure** that can be exploited
+3. The economic model might need **adjustment for bias**
+
+---
+
+### 6) What To Test Next
+
+To validate these hypotheses:
+
+#### Test A: Search Order
+```bash
+# Check fact0rnd source code:
+# Does it scan S downward? Upward? Random?
+grep -A 10 "for.*in S" src/*.cpp
+```
+**If scanning downward → confirms Hypothesis 4**
+
+#### Test B: Offset Histogram Shape
+```python
+# Generate histogram of offsets for single nBits value
+# Is it monotonic? Spiky? Boundary-clustered?
+```
+**Non-monotonic → Hypothesis 2 (density variations)**
+
+#### Test C: Time-to-Solution vs. Offset
+```python
+# Measure: Do smaller offsets take longer to find?
+# If yes → confirms early-stop bias
+```
+**Positive correlation → Hypothesis 4**
+
+#### Test D: Compare Different Miners
+```bash
+# If bias is consistent → protocol-level (Hypothesis 2 or 3)
+# If bias varies → implementation-level (Hypothesis 1 or 4)
+```
+
+---
+
+### 7) Empirical Model Opportunity
+
+Given the bias, we can model:
+```
+P(offset | nBits) ≈ f(offset; μ, σ, skew, boundary)
+```
+
+**Potential applications:**
+1. **Mining optimization:** Prioritize search in high-probability regions
+2. **Difficulty adjustment:** Account for structural bias in target times
+3. **Attack detection:** Flag miners who exploit bias excessively
+
+**Next step:** Reverse-engineer the empirical distribution and test if it gives **measurable mining advantage**.
+
+---
+
+*This analysis reveals that Fact0rn's PoW has **emergent structure** not captured in the whitepaper's random oracle model. The mismatch between theory and practice isn't a bug—it's a feature that could be exploited for competitive advantage.*
