@@ -17,7 +17,7 @@ else
     DEBUG_LOG="${HOME}/.factorn/debug.log"
 fi
 
-LOG_FILE="$PROJECT_ROOT/pipeline.log"
+LOG_FILE="$PROJECT_ROOT/results/pipeline.log"
 CSV_FILE="results/wOffset_statistics.csv"
 
 # Create results directory if it doesn't exist

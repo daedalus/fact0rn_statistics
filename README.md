@@ -895,40 +895,11 @@ for n in shuffled_candidates:
 ### Running the Full Pipeline
 ```bash
 # Run all analysis scripts (requires debug.log)
+# Output: results/pipeline.log
 ./pipeline.sh ~/.factorn/debug.log
 
-# Or run individual scripts:
-cd src
-
-# Extract statistics from debug.log
-python3 parser.py ~/.factorn/debug.log
-
-# Generate plots and export CSV
-python3 plot_stats.py ~/.factorn/debug.log
-
-# Estimate lambda and speedup
-python3 model_offset.py ../results/wOffset_statistics.csv
-
-# Validate model with raw data
-python3 validate_model.py ~/.factorn/debug.log 230
-
-# Generate distribution plots
-python3 plot_distribution.py ~/.factorn/debug.log 230
-
-# Analyze bias source (validates shuffling)
-python3 analyze_bias_source.py ../results/wOffset_statistics.csv
-
-# Complete analysis demo
-python3 demo_complete.py ~/.factorn/debug.log
-
-# Analyze 110x density ratio
-python3 analyze_density_ratio.py ~/.factorn/debug.log 230
-
-# Run mining optimizer
-python3 mining_optimizer.py
-
-# Validate new hypothesis (variable density)
-python3 validate_new_hypothesis.py ~/.factorn/debug.log 230
+# View results
+cat results/pipeline.log
 ```
 
 ### Critical Disclaimer
