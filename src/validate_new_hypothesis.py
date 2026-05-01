@@ -9,7 +9,7 @@ Since candidates ARE shuffled, the bias must come from:
 import sys
 sys.path.insert(0, 'lib')
 from lib.parser_lib import extract_w_values, extract_all_offsets
-from lib.stats_lib import mean, stdev, skew, kurtosis, mad, medad, cv, stderr
+from lib.stats_lib import mean, stdev, skew, kurtosis, mad, medad, cv, stderr, pvariance, variance
 
 def analyze_residue_classes(debug_log_path, target_nBits='230'):
     """Test if certain residue classes have more negative offsets"""
