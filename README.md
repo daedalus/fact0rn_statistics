@@ -165,6 +165,11 @@ The script exports all computed statistics to `results/wOffset_statistics.csv`:
 | `avg_abs_dev` | Average absolute deviation from mean |
 | `sq_dev_mean` | Sum of squared deviations from mean |
 | `rms` | Root Mean Square |
+| `mag` | Mean Absolute rate of change (requires ordered data) |
+| `mage` | Mean Amplitude of Large Excursions (requires ordered data) |
+| `trend_slope` | Linear regression slope vs block index |
+| `gvp` | Variability Percentage - path length vs flat baseline |
+| `cv_rate` | CV of rate-of-change series |
 
 The last row contains `GROUPED` statistics across all nBits values.
 
