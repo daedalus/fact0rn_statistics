@@ -8,14 +8,25 @@ Parses Fact0rn's `~/.factorn/debug.log` to extract `nBits` and `wOffset` values 
 fact0rn_statistics/
 ├── README.md              # This file
 ├── requirements.txt       # Python dependencies
+├── pipeline.sh           # Full pipeline script (runs all analysis)
 ├── src/                  # Source scripts
-│   ├── parser.py         # Extracts statistics from debug.log
+│   ├── parser.py         # Extracts statistics from debug.log (canonical parser)
 │   ├── plot_stats.py     # Generates matplotlib plots and CSV export
 │   ├── plot_stats.gp     # Gnuplot script (alternative plotting)
 │   ├── model_offset.py   # Empirical model for P(offset|nBits)
 │   ├── validate_model.py  # Tests exponential model against raw data
 │   ├── plot_distribution.py # Visualizes distribution and fits
-│   └── mining_optimizer.py # Mining optimization from bias
+│   ├── mining_optimizer.py # Mining optimization from bias
+│   ├── analyze_bias_source.py # Validates candidates ARE shuffled (line 319)
+│   ├── analyze_density_ratio.py # Consolidated 110x ratio analysis
+│   ├── validate_new_hypothesis.py # Tests variable density hypothesis
+│   ├── demo_complete.py  # Complete analysis summary
+│   └── lib/               # Shared libraries
+│       ├── parser_lib.py   # Re-exports from parser.py
+│       ├── stats_lib.py    # Common statistical functions
+│       ├── model_lib.py    # Lambda/exponential model functions
+│       ├── plot_lib.py     # Plotting utilities
+│       └── csv_lib.py      # CSV loading functions
 └── results/              # Generated outputs
     ├── wOffset_statistics.csv
     ├── stats_*.png          # Statistical plots
@@ -861,31 +872,62 @@ for n in shuffled_candidates:
 **Note:** 53.0x assumes current miner scans full window symmetrically (2*ñ/E[d] = 7360/138.9); if already scanning downward from left boundary, relevant speedup is 26.5x (ñ/E[d] = 3680/138.9).
 
 ### Files for Empirical Analysis
-
 | File | Description |
 |------|-------------|
+| `src/parser.py` | Extracts statistics from debug.log (canonical parser) |
+| `src/plot_stats.py` | Generates matplotlib plots and CSV export |
 | `src/model_offset.py` | Estimates λ and computes expected speedup |
 | `src/validate_model.py` | Tests exponential model against raw data |
 | `src/plot_distribution.py` | Visualizes distribution fits |
 | `src/mining_optimizer.py` | Generates optimized mining strategies |
+| `src/analyze_bias_source.py` | Validates candidates ARE shuffled (line 319) |
+| `src/validate_new_hypothesis.py` | Tests 110x ratio with actual debug.log |
+| `src/analyze_density_ratio.py` | Consolidated 110x ratio analysis |
+| `src/demo_complete.py` | Complete analysis summary |
+| `src/lib/parser_lib.py` | Re-exports from parser.py |
+| `src/lib/stats_lib.py` | Common statistical functions |
+| `src/lib/model_lib.py` | Lambda/exponential model functions |
+| `src/lib/plot_lib.py` | Plotting utilities |
+| `src/lib/csv_lib.py` | CSV loading functions |
 | `results/distribution_*.png` | Distribution analysis plots |
 
-### Running the Analysis
-
+### Running the Full Pipeline
 ```bash
+# Run all analysis scripts (requires debug.log)
+./pipeline.sh ~/.factorn/debug.log
+
+# Or run individual scripts:
 cd src
+
+# Extract statistics from debug.log
+python3 parser.py ~/.factorn/debug.log
+
+# Generate plots and export CSV
+python3 plot_stats.py ~/.factorn/debug.log
 
 # Estimate lambda and speedup
 python3 model_offset.py ../results/wOffset_statistics.csv
 
-# Validate with raw data (requires debug.log)
+# Validate model with raw data
 python3 validate_model.py ~/.factorn/debug.log 230
 
 # Generate distribution plots
 python3 plot_distribution.py ~/.factorn/debug.log 230
 
-# See mining optimization strategies
+# Analyze bias source (validates shuffling)
+python3 analyze_bias_source.py ../results/wOffset_statistics.csv
+
+# Complete analysis demo
+python3 demo_complete.py ~/.factorn/debug.log
+
+# Analyze 110x density ratio
+python3 analyze_density_ratio.py ~/.factorn/debug.log 230
+
+# Run mining optimizer
 python3 mining_optimizer.py
+
+# Validate new hypothesis (variable density)
+python3 validate_new_hypothesis.py ~/.factorn/debug.log 230
 ```
 
 ### Critical Disclaimer
