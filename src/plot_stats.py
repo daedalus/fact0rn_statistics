@@ -26,7 +26,7 @@ min_vals, median_vals, mean_vals, mode_vals, stdev_vals, skew_vals, kurt_vals, p
 mad_vals, cv_vals, medad_vals, stderr_vals = [], [], [], []
 p5_vals, p25_vals, p75_vals, p95_vals, iqr_vals = [], [], [], [], []
 avg_abs_dev_vals, sq_dev_mean_vals, rms_vals = [], [], []
-mag_vals, mage_vals, trend_slope_vals, gvp_vals, cv_rate_vals = [], [], [], [], []
+mag_vals, mage_vals, trend_slope_vals, gvp_vals, cv_rate_vals, lability_index_vals = [], [], [], [], [], []
 
 for bits in bits_sorted:
     h = histo[bits]

@@ -1,12 +1,12 @@
 === Fact0rn wOffset Statistics Pipeline ===
 Using debug log: /home/dclavijo/.factorn/debug.log
 Project root: /home/dclavijo/my_code/fact0rn_statistics
-Started: Fri May  1 02:24:29 PM -03 2026
+Started: Fri May  1 03:59:15 PM -03 2026
 
 === Step 1: Running parser.py ===
 === Step 2: Running plot_stats.py ===
 Total valid rows 175199
-/home/dclavijo/my_code/fact0rn_statistics/src/plot_stats.py:124: UserWarning: No artists with labels found to put in legend.  Note that artists whose label start with an underscore are ignored when legend() is called with no argument.
+/home/dclavijo/my_code/fact0rn_statistics/src/plot_stats.py:157: UserWarning: No artists with labels found to put in legend.  Note that artists whose label start with an underscore are ignored when legend() is called with no argument.
   plt.legend()
 Statistics exported to ../results/wOffset_statistics.csv
 Generated plots:
@@ -20,6 +20,11 @@ Generated plots:
   ../results/stats_cv.png
   ../results/stats_medad.png
   ../results/stats_stderr.png
+  ../results/stats_percentiles.png
+  ../results/stats_iqr.png
+  ../results/stats_avg_abs_dev.png
+  ../results/stats_rms.png
+  ../results/stats_lability_index.png
   ../results/stats_all_normalized.png
 === Step 3: Running model_offset.py ===
 === FACT0RN wOffset Empirical Model ===
@@ -548,7 +553,7 @@ KEY FINDING: Candidates ARE SHUFFLED (lib/blockchain.py line 319)
 === Optimized Mining Strategy for nBits=230 ===
   ñ = 3680
   Best W found after 1000 attempts
-  W = 714869, nonce = 151
+  W = 465191, nonce = 99
   Density score: 6/6
 
 
@@ -567,7 +572,7 @@ Key takeaways for nBits=230:
 === Optimized Mining Strategy for nBits=250 ===
   ñ = 4000
   Best W found after 1000 attempts
-  W = 746591, nonce = 781
+  W = 490489, nonce = 508
   Density score: 6/6
 
 
@@ -586,7 +591,7 @@ Key takeaways for nBits=250:
 === Optimized Mining Strategy for nBits=300 ===
   ñ = 4800
   Best W found after 1000 attempts
-  W = 515789, nonce = 999
+  W = 675949, nonce = 289
   Density score: 6/6
 
 
@@ -710,5 +715,5 @@ If tests show:
 Generated: stats_central.png, stats_stdev.png, stats_skew.png, stats_kurtosis.png, stats_variance.png, stats_count.png, stats_mad.png, stats_cv.png, stats_medad.png, stats_stderr.png, stats_all_normalized.png
 
 === Pipeline Complete ===
-Finished: Fri May  1 02:24:37 PM -03 2026
-Output: /home/dclavijo/my_code/fact0rn_statistics/pipeline.log
+Finished: Fri May  1 03:59:26 PM -03 2026
+Output: /home/dclavijo/my_code/fact0rn_statistics/results/pipeline.log
