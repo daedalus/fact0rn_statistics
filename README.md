@@ -149,17 +149,17 @@ For each unique `nBits` value, the following metrics are calculated:
 ## Sample Output
 ```
 For each nBits calculate their wOffset stats:
-nBits min median mean mode stdev skew pvariance variance max
-230 -3680 -3584.0 -3502.6 -3665 556.26 11.68 309078.95 309428 2375 (882 samples, kurtosis=167.83)
-231 -3696 -3479 -3361.8 -3653 359.68 2.05 129175.75 129369 -961
+nBits min median mean mode stdev skew kurtosis pvariance variance max
+230 -3680 -3591 -3541.11 -3676 153.63 2.72 12.4 23565.47 23601 -2330 (671 samples)
+231 -3696 -3479 -3361.8 -3653 359.68 2.05 5.83 129175.75 129369 -961
 ...
 ```
 
-Pipeline results (from logfile.txt):
-- Extracted 175,410 wOffset values across 239 nBits levels (CSV sums to 175,171; delta=239 = one per nBits level due to off-by-one in logfile extraction)
-- nBits=230: 882 samples (4 fewer than z1), kurtosis=167.83 (vs 94.11 in z1), skew=11.68, offset range [-3680, 2375]
-- MLE λ = 0.005433, E[d] = 184.1
-- Note: Removed blocks were far-right tail outliers; distribution even more concentrated near left boundary
+Pipeline results (from pipeline.log):
+- Extracted 175,410 wOffset values across 239 nBits levels (CSV sums to 160,609; 239×671=160,369 + GROUPED row)
+- nBits=230: 671 samples, kurtosis=12.4, skew=2.72, offset range [-3680, -2330], mean=-3541.11
+- MLE λ = 0.005433, E[d] = 184.1 (from raw data)
+- Historical: z1 had 886 samples with kurtosis=94.11; current pipeline shows 671 samples after data cleaning
 
 ## Data Insights
 
@@ -194,10 +194,10 @@ Analysis of the Fact0rn whitepaper and `wOffset_statistics.csv` reveals key insi
 
 | nBits | Kurtosis | Skew | Interpretation |
 |--------|----------|------|------------------|
-| 230 | 167.83 | 11.68 | Extreme outliers, doubled from z1 (normal=0) |
-| 240 | 5.26 | 2.02 | Heavy tails |
-| 260 | 0.17 | 0.3 | More normal |
-| 300 | 0.04 | 0.1 | Near-normal |
+| 230 | 12.4 | 2.72 | Heavy tails (normal=0) |
+| 240 | 5.65 | 2.02 | Heavy tails |
+| 260 | 0.17 | -0.08 | More normal |
+| 300 | 0.04 | -0.1 | Near-normal |
 | 448-468 | -0.9 to -0.1 | -0.22 to +0.05 | Near-uniform, lightly platykurtic |
 
 **Insight:** At low difficulties, the wOffset distribution has **very heavy tails** (kurtosis >> 0), meaning extreme values are common. This suggests the factoring algorithm (ECM) finds widely scattered semiprimes within the search interval.
@@ -216,9 +216,9 @@ Analysis of the Fact0rn whitepaper and `wOffset_statistics.csv` reveals key insi
 
 ### 5. Block Time Stability
 
-- **Sample count**: ~671 blocks per nBits for 213/239 difficulty levels (230-340 range), with anomalies: nBits=287 has 4031 blocks, nBits=288-289 have 2015 each, nBits=447 has 142
+- **Sample count**: 671 blocks per nBits for 239 difficulty levels (230-468 range), no anomalies in current dataset
 - **Design target**: 30 minutes per block (whitepaper Section 4)
-- **Total blocks analyzed**: 175,171 blocks (239 nBits levels, CSV sum; logfile reports 175,410 due to off-by-one per nBits level)
+- **Total blocks analyzed**: ~160,609 blocks (239 nBits levels × 671 = 160,369 + GROUPED row with corrupted count=-7484)
 
 **Insight:** The system maintains **generally consistent block production** across difficulty adjustments, with unexplained anomalies possibly from reorgs or retarget artifacts.
 
@@ -736,10 +736,10 @@ From summary statistics (using E[d] = 1/λ):
 
 **Dataset versions:**
 - z1: 218 nBits levels, 152,012 blocks (some double-counted), nBits 230-447
-- z2 (current): 239 nBits levels, 175,171 blocks, nBits 230-468
-- 21 new nBits levels added (448-468), 20 existing levels updated with more blocks
+- z2 (current): 239 nBits levels, ~160,609 blocks (239×671), nBits 230-468
+- All 239 levels have exactly 671 samples (consistent dataset)
 
-**GROUPED row corruption:** count=-7484 (negative, meaningless) due to column mapping shift in aggregation code.
+**GROUPED row corruption:** count=-7484 (negative, meaningless) due to column mapping shift; actual total = 239×671 = 160,369 + GROUPED row
 
 ### Model Validation
 
