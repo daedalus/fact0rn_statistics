@@ -254,30 +254,49 @@ Analysis of the Fact0rn whitepaper and `wOffset_statistics.csv` reveals key insi
 
 ---
 
-### 2. Phase Transition: Zero Crossing at nBits ≈ 260
+### 2. Phase Transition: Zero Crossing at nBits ≈ 249-252
 
-| nBits Range | wOffset Mean | Distribution |
-|--------------|---------------|--------------|
-| 230-248 | -3500 to -3000 | All negative (gHash < semiprime) |
-| 249-253 | -2900 to -17 | Transition zone |
-| 254+ | -700 to +140 | Centered around 0 |
-| 256-301 | **+49 to +189** | **Mean goes POSITIVE** |
+**Sharp structural regime change** — the most striking feature of the data:
 
-**Key discovery:** nBits=260 mean=**+140.57** (positive!) — the transition is a **zero crossing**, not just a plateau. The transition zone is **40+ nBits wide** (256-301) with multiple sign flips, eventually settling in positive territory. This suggests the gHash-to-semiprime relationship **overshoots** past zero.
+| nBits | Mean | Median | Interpretation |
+|--------|------|--------|-------------|
+| 230-248 | -3500 to -3600 | -3300 to -3600 | Tightly clustered, all negative |
+| 249 | -2913 | -3457 | First sign of loosening |
+| 250 | -1997 | -3017 | Massive divergence opens |
+| 251 | -411 | -631 | Approaching zero |
+| 252 | **-15** | **-64.5** | **Essentially zero** |
+| 253-260+ | ±300 | ±400 | Near zero, IQR ~4000+, nearly symmetric |
+
+**Key discovery:** The transition is a **sharp nonlinear shift** around nBits 249-252 (not gradual at 260). The mean/median undergo a dramatic shift from negatively biased to near-zero in just 3-4 steps. At nBits=252, the mean is essentially zero (-15).
+
+**Trend slope** confirms directional drift:
+- Pre-transition: slope mostly small negative (-0.03 to -0.16)
+- At transition (249-250): slope jumps to **+1.44 and +2.20**
+- Post-transition: oscillates near zero (±1-2)
+
+This "crossing zero" suggests the gHash-to-semiprime relationship **overshoots** past zero.
 
 ---
 
-### 3. Heavy-Tailed at Low nBits, Platykurtic at High nBits
+### 3. Standard Deviation & IQR Expansion
+
+| nBits | stdev | IQR | Interpretation |
+|--------|-------|-----|-------------|
+| 230-248 | ~150-400 | ~150-450 | Tightly concentrated |
+| 252+ | ~2300-2450 | ~4000-4500 | Fills full range |
+| 448-468 | ~3000-3963 | ~4000-4500 | Platykurtic, uniform-like |
+
+**Key insight:** Pre-transition distributions are **tightly concentrated** (stdev ~150-400). Post-transition, they **expand dramatically** (stdev ~2300-2450, IQR ~4000-4500), nearly filling the full [-16·nBits, +16·nBits] range. Combined with near-zero mean/median, post-transition distributions look **approximately uniform** over a symmetric range.
 
 | nBits | Kurtosis | Skew | Interpretation |
 |--------|----------|------|------------------|
-| 230 | 12.4 | 2.72 | Heavy tails (normal=0) |
+| 230 | **316.0** | 15.22 | **Extreme tails** (normal=0) |
 | 240 | 5.65 | 2.02 | Heavy tails |
-| 260 | 0.17 | -0.08 | More normal |
-| 300 | 0.04 | -0.1 | Near-normal |
-| 448-468 | **-0.22 to 0.0** | -0.22 to +0.05 | **Platykurtic** (LESS peaked than normal) |
+| 248 | ~3-5 | ~2 | Still heavy-tailed |
+| 262+ | **-0.5 to -1.3** | ~0 | **Platykurtic** (LESS peaked than normal) |
+| 448-468 | **-0.22 to 0.0** | -0.22 to +0.05 | Platykurtic |
 
-**Insight:** At low difficulties, the wOffset distribution has **very heavy tails** (kurtosis >> 0). At high nBits (448-468), the distribution becomes **platykurtic** (kurtosis < 0) — LESS peaked than normal, meaning values are more evenly spread. The "near-normal" claim in earlier versions was incorrect.
+**Key insight:** The kurtosis flips from extreme positive (nBits=230: 316.0) to negative (-0.5 to -1.3) after the phase transition. This marks a shift from **spike/outlier-dominated** distributions to **flat-topped, uniform-like** distributions. The distribution goes from heavy-tailed to platykurtic.
 
 ---
 
@@ -319,9 +338,10 @@ Analysis of the Fact0rn whitepaper and `wOffset_statistics.csv` reveals key insi
 |--------|--------|------------------|
 | 230 | -16% | Low relative spread |
 | 250 | -112% | High relative spread |
+| 252-260 | **-15124% to -3717%** | **CV meaningless (mean ≈0)** |
 | 300 | 1000%+ | Extreme relative spread |
 
-**Insight:** As difficulty increases, the **relative variability explodes** because the mean approaches 0 while stdev grows: nBits=468 has stdev=**3963.51** (not "~2500-2800"). At high nBits, the window fully brackets semiprime density and wOffset becomes more uniform.
+**Key insight:** CV spikes to extreme values when the mean passes through zero — CV becomes **meaningless** there (division by ~zero). Similarly, `cv_rate` shows instability in the same window (nBits 252-260).
 
 ---
 
@@ -341,11 +361,13 @@ Analysis of the Fact0rn whitepaper and `wOffset_statistics.csv` reveals key insi
 ### Summary of Key Findings
 
 1. ✅ **Constraint respected**: Miners operate exactly at `|wOffset| ≤ 16·nBits` boundary
-2. ✅ **Constraint respected**: Miners operate exactly at `|wOffset| ≤ 16·nBits` boundary
-3. 🔄 **Phase transition**: Noisy plateau near nBits≈250 (56 sign flips after 256) where gHash alignment with semiprimes shifts
-4. 📊 **Heavy tails at low difficulty**: ECM factoring finds extreme values frequently
+2. 🔄 **Phase transition**: Sharp zero-crossing at nBits≈249-252 (not gradual at 260)
+3. 📊 **Heavy tails at low difficulty**: Extreme kurtosis (316 at nBits=230) — outlier-dominated
+4. 📈 **Regime shift**: Kurtosis flips from >0 (heavy-tailed) to <0 (platykurtic) post-transition
 5. ⏱️ **Generally stable block times**: ~733 blocks per nBits for most difficulty levels (30min target)
-6. 🎯 **Sweet spot**: nBits 250-260 has wOffset closest to 0 (optimal mining)
+6. 🎯 **Sweet spot**: nBits 250-252 has wOffset closest to 0 (optimal mining)
+7. 📉 **Stdev/IQR explosion**: Post-transition, stdev grows from ~400 to ~4000+ (fills full range)
+8. 📊 **GROUPED row**: mean=-483, median=-675, stdev=3077 — dominated by post-transition regime (high-variance, near-zero mean)
 
 ---
 
