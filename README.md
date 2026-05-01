@@ -128,6 +128,10 @@ python3 parser.py ~/.factorn/debug.log
 ![Standard Error](results/stats_stderr.png)
 *Standard error of the mean per nBits*
 
+### Lability Index
+![Lability Index](results/stats_lability_index.png)
+*Lability Index - instability via squared successive differences per nBits*
+
 ### Normalized Statistics
 ![Normalized Statistics](results/stats_all_normalized.png)
 *All statistics normalized to 0-1 range for direct comparison*
@@ -170,6 +174,7 @@ The script exports all computed statistics to `results/wOffset_statistics.csv`:
 | `trend_slope` | Linear regression slope vs block index |
 | `gvp` | Variability Percentage - path length vs flat baseline |
 | `cv_rate` | CV of rate-of-change series |
+| `lability_index` | Lability Index - sqrt(sum of squared successive differences) |
 
 The last row contains `GROUPED` statistics across all nBits values.
 
@@ -206,6 +211,7 @@ For each unique `nBits` value, the following metrics are calculated:
 | `trend_slope` | Linear regression slope vs block index |
 | `gvp` | Variability Percentage - path length vs flat baseline |
 | `cv_rate` | CV of rate-of-change series |
+| `lability_index` | Lability Index - instability via squared successive differences |
 
 ## Sample Output
 ```
