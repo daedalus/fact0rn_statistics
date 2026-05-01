@@ -66,25 +66,43 @@ fact0rn_statistics/
 
 ## Usage
 
-### Option 1: Python/Matplotlib (Recommended)
+### Option 1: Full Pipeline (Recommended)
+```bash
+cd src
+python3 main.py ~/.factorn/debug.log
+# Or with options:
+python3 main.py ~/.factorn/debug.log --skip-gnuplot --nBits 230
+```
+Options:
+- `debug_log`: Path to debug.log (default: ~/.factorn/debug.log)
+- `--skip-gnuplot`: Skip Gnuplot step
+- `--nBits`: nBits value for analysis scripts (default: 230)
+- `--output-dir`: Output directory (default: ../results)
+
+This runs all analysis scripts and logs output to `results/pipeline.log`.
+
+### Option 2: Python/Matplotlib (Standalone)
 ```bash
 cd src
 python3 plot_stats.py ~/.factorn/debug.log
 ```
 This generates PNG plots in `../results/` and exports statistics to `../results/wOffset_statistics.csv`.
 
-### Option 2: Gnuplot
+### Option 3: Gnuplot (Standalone)
 ```bash
 cd src
 python3 parser.py ~/.factorn/debug.log > ../results/stats_data.txt
 gnuplot plot_stats.gp
 ```
 
-### Option 3: Parser Only
+### Option 4: Parser Only
 ```bash
 cd src
 python3 parser.py ~/.factorn/debug.log
 ```
+
+### Deprecated: Shell Pipeline
+The old `pipeline.sh` is deprecated. Use `src/main.py` instead.
 
 ## Generated Outputs
 
