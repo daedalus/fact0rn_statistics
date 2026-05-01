@@ -129,6 +129,14 @@ def rms(data):
         return 0.0
     return math.sqrt(mean([x ** 2 for x in data]))
 
+def lability_index(data):
+    """Lability Index - sqrt(sum of squared successive differences / n)
+    Measures instability through squared successive differences."""
+    if len(data) < 2:
+        return 0.0
+    sq_diff = sum((data[i+1] - data[i]) ** 2 for i in range(len(data)-1))
+    return math.sqrt(sq_diff / (len(data) - 1))
+
 def skew(data):
     """Calculate skewness of data"""
     m = mean(data)
