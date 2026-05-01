@@ -154,9 +154,17 @@ The script exports all computed statistics to `results/wOffset_statistics.csv`:
 | `variance` | Sample variance |
 | `max` | Maximum wOffset |
 | `mad` | Mean Absolute Deviation |
-| `cv` | Coefficient of Variation (%) |
 | `medad` | Median Absolute Deviation |
+| `cv` | Coefficient of Variation (%) |
 | `stderr` | Standard Error of the Mean |
+| `p5` | 5th percentile |
+| `p25` | 25th percentile (Q1) |
+| `p75` | 75th percentile (Q3) |
+| `p95` | 95th percentile |
+| `iqr` | Interquartile Range (Q3 - Q1) |
+| `avg_abs_dev` | Average absolute deviation from mean |
+| `sq_dev_mean` | Sum of squared deviations from mean |
+| `rms` | Root Mean Square |
 
 The last row contains `GROUPED` statistics across all nBits values.
 
@@ -180,6 +188,19 @@ For each unique `nBits` value, the following metrics are calculated:
 | `cv` | Coefficient of Variation (stdev/mean × 100%) |
 | `medad` | Median Absolute Deviation |
 | `stderr` | Standard Error of the Mean (stdev/√n) |
+| `p5` | 5th percentile |
+| `p25` | 25th percentile (Q1) |
+| `p75` | 75th percentile (Q3) |
+| `p95` | 95th percentile |
+| `iqr` | Interquartile Range (p75 - p25) |
+| `avg_abs_dev` | Average absolute deviation from mean |
+| `sq_dev_mean` | Sum of squared deviations from mean |
+| `rms` | Root Mean Square |
+| `mag` | Mean Absolute rate of change (requires ordered data) |
+| `mage` | Mean Amplitude of Large Excursions (requires ordered data) |
+| `trend_slope` | Linear regression slope vs block index |
+| `gvp` | Variability Percentage - path length vs flat baseline |
+| `cv_rate` | CV of rate-of-change series |
 
 ## Sample Output
 ```
