@@ -5,6 +5,7 @@ Used by: model_offset.py, validate_model.py, plot_distribution.py, etc.
 """
 
 import math
+from statistics import mean
 
 def estimate_lambda(nBits, mean_offset):
     """

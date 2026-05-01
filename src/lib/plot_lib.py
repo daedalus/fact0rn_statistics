@@ -22,12 +22,12 @@ def save_plot(output_path, dpi=150):
     plt.savefig(output_path, dpi=dpi)
     plt.close()
 
-def plot_line(x, y, style='o-', label='', markersize=3, color=None):
+def plot_line(x, y, style='o-', label='', markersize=3, color=None, **kwargs):
     """Plot a line with given style"""
     if color:
-        plt.plot(x, y, style, label=label, markersize=markersize, color=color)
+        plt.plot(x, y, style, label=label, markersize=markersize, color=color, **kwargs)
     else:
-        plt.plot(x, y, style, label=label, markersize=markersize)
+        plt.plot(x, y, style, label=label, markersize=markersize, **kwargs)
 
 def plot_histogram(data, bins=50, alpha=0.7, label=''):
     """Plot histogram"""
