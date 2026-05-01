@@ -89,15 +89,34 @@ for bits in bits_sorted:
     all_wOffsets.extend(histo[bits])
 
 with open(csv_filename, 'w', newline='') as csvfile:
+    C = 0
     writer = csv.writer(csvfile)
     writer.writerow(['nBits', 'count', 'min', 'median', 'mean', 'mode', 'stdev', 'skew', 'kurtosis', 'pvariance', 'variance', 'max', 'mad', 'cv', 'medad', 'stderr'])
     for i, bits in enumerate(bits_sorted):
+        C += count_vals[i]
         writer.writerow([bits, count_vals[i], min_vals[i], median_vals[i], mean_vals[i], mode_vals[i],
                         stdev_vals[i], skew_vals[i], kurt_vals[i], pvar_vals[i], var_vals[i], max_vals[i],
                         mad_vals[i], cv_vals[i], medad_vals[i], stderr_vals[i]])
-    writer.writerow(['GROUPED', min(all_wOffsets), median(all_wOffsets), round(mean(all_wOffsets), 2),
-                    mode(all_wOffsets), round(stdev(all_wOffsets), 2), round(skew(all_wOffsets), 2),
-                    round(pvariance(all_wOffsets), 2), round(variance(all_wOffsets)), max(all_wOffsets)])
+                        
+    # GROUPED row: must have exactly 16 fields (matching header)
+    writer.writerow([
+        'GROUPED',
+        sum(count_vals),  # count
+        min(all_wOffsets),  # min
+        round(median(all_wOffsets), 2),  # median
+        round(mean(all_wOffsets), 2),  # mean
+        mode(all_wOffsets),  # mode
+        round(stdev(all_wOffsets), 2),  # stdev
+        round(skew(all_wOffsets), 2),  # skew
+        round(kurtosis(all_wOffsets), 2),  # kurtosis (was missing)
+        round(pvariance(all_wOffsets), 2),  # pvariance
+        round(variance(all_wOffsets), 2),  # variance
+        max(all_wOffsets),  # max
+        round(mad(all_wOffsets), 2),  # mad (was missing)
+        round(cv(all_wOffsets), 2),  # cv (was missing)
+        round(medad(all_wOffsets), 2),  # medad (was missing)
+        round(stderr(all_wOffsets), 2)  # stderr (was missing)
+    ])
 
 print(f"Statistics exported to {csv_filename}")
 
