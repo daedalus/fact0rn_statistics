@@ -128,6 +128,22 @@ python3 parser.py ~/.factorn/debug.log
 ![Standard Error](results/stats_stderr.png)
 *Standard error of the mean per nBits*
 
+### Percentiles
+![Percentiles](results/stats_percentiles.png)
+*p5, p25 (Q1), p75 (Q3), p95 per nBits*
+
+### Interquartile Range (IQR)
+![IQR](results/stats_iqr.png)
+*IQR (p75 - p25) per nBits*
+
+### Average Absolute Deviation
+![Avg Abs Dev](results/stats_avg_abs_dev.png)
+*Average absolute deviation from mean per nBits*
+
+### Root Mean Square (RMS)
+![RMS](results/stats_rms.png)
+*Root mean square of wOffset per nBits*
+
 ### Lability Index
 ![Lability Index](results/stats_lability_index.png)
 *Lability Index - instability via squared successive differences per nBits*
@@ -135,10 +151,6 @@ python3 parser.py ~/.factorn/debug.log
 ### Normalized Statistics
 ![Normalized Statistics](results/stats_all_normalized.png)
 *All statistics normalized to 0-1 range for direct comparison*
-
-### Sample Count
-![Sample Count](results/stats_count.png)
-*Number of wOffset samples per nBits value*
 
 ## CSV Export
 The script exports all computed statistics to `results/wOffset_statistics.csv`:
