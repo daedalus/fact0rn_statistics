@@ -99,11 +99,11 @@ def main():
     zero = sum(1 for x in h if x == 0)
     pos = sum(1 for x in h if x > 0)
     total = len(h)
-    print(f"\nwOffset sign distribution:")
-    print(f"  Negative (<0): {neg} ({neg/total*100:.1f}%)")
-    print(f"  Zero (=0):     {zero} ({zero/total*100:.1f}%)")
-    print(f"  Positive (>0): {pos} ({pos/total*100:.1f}%)")
-    print(f"  Total: {total}")
+    sys.stderr.write(f"\nwOffset sign distribution:\n")
+    sys.stderr.write(f"  Negative (<0): {neg} ({neg/total*100:.1f}%)\n")
+    sys.stderr.write(f"  Zero (=0):     {zero} ({zero/total*100:.1f}%)\n")
+    sys.stderr.write(f"  Positive (>0): {pos} ({pos/total*100:.1f}%)\”")
+    sys.stderr.write(f"  Total: {total}\n")
 
 
 if __name__ == '__main__':

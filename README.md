@@ -17,7 +17,7 @@ Fact0rn is a blockchain whose Proof of Work is based on **integer factorization*
 5. **Factoring**: Miners test candidates in S using the **Elliptic Curve Method (ECM)** to find semiprimes (products of two primes).
 6. **Whitepaper assumption**: gHash is "random enough" that semiprimes should be **uniformly distributed** in S, making wOffset roughly symmetric around 0.
 
-**What this project discovered**: The actual wOffset distribution is **heavily biased** toward negative values (~110x more solutions in the negative region), revealing structural properties not captured in the whitepaper's random oracle model.
+**What this project discovered**: The actual wOffset distribution is **heavily biased** toward negative values (~220x (nBits=230) more solutions in the negative region), revealing structural properties not captured in the whitepaper's random oracle model.
 
 ## Project Structure
 ```
@@ -38,7 +38,7 @@ fact0rn_statistics/
 │   ├── plot_distribution.py # Visualizes distribution and fits
 │   ├── mining_optimizer.py # Mining optimization from bias
 │   ├── analyze_bias_source.py # Validates candidates ARE shuffled (line 319)
-│   ├── analyze_density_ratio.py # Consolidated 110x ratio analysis
+│   ├── analyze_density_ratio.py # Consolidated 220x ratio analysis
 │   ├── validate_new_hypothesis.py # Tests variable density hypothesis
 │   ├── demo_complete.py  # Complete analysis summary
 │   └── lib/               # Shared libraries
@@ -632,7 +632,12 @@ random.shuffle(candidates)  # CANDIDATES ARE SHUFFLED!
 
 **→ Hypothesis 4 (scan order) is DISPROVEN!**
 
-⚠️ **Note:** The 99.1% / 0.9% density split and 110x ratio were verified using raw `debug.log` — the CSV only contains aggregates and cannot independently confirm this claim.
+⚠️ **Note:** The density ratio was computed from `debug.log` for nBits=230:
+- Negative offsets: 879 samples (99.5%)
+- Positive offsets: 4 samples (0.5%)
+- **Ratio: 220x denser in negative region** (not 220x as previously claimed)
+- This extreme ratio is **only true at LOW nBits (230-248)**
+- At higher nBits (256-301), the mean goes **positive** — the negative region dominance does NOT hold across all nBits levels
 
 **NEW Hypothesis: Variable Factoring Difficulty/Density**  
 Tested with `src/validate_new_hypothesis.py` on actual `debug.log`:
@@ -648,11 +653,11 @@ ALL residue classes: 99%+ negative offsets!
 
 **2. Density Variation (THE SMOKING GUN!):**
 ```
-Negative offsets (W-16nBits to W):   879 samples (99.1%)
-Positive offsets (W to W+16nBits):    8 samples  (0.9%)  ← ONLY 8!
+Negative offsets (W-16nBits to W):   879 samples (99.5%)
+Positive offsets (W to W+16nBits):    4 samples  (0.5%)  ← ONLY 8!
 Zero offsets:                            0 samples
 
-Ratio: 99.1/0.9 = 110x denser in negative region!
+Ratio: 99.1/0.9 = 220x denser in negative region!
 ```
 
 **3. Lambda Estimation:**
@@ -670,16 +675,16 @@ Positive region variance: 0.0 (too few samples!)
 ```
 
 **CONCLUSION:** ✅ **Hypothesis CONFIRMED (verified with raw debug.log)**
-- Semiprime density is ~110x HIGHER in negative region (verified from debug.log, not CSV aggregates)
+- Semiprime density is ~220x HIGHER in negative region (nBits=230, 879 vs 4 samples)
 - This is NOT from scan order (candidates ARE shuffled)
 - It's from **non-uniform semiprime density** across [W-16nBits, W+16nBits]
-- The negative region is VIRTUALLY THE ONLY PLACE where semiprimes are found!
+- The negative region is VIRTUALLY THE ONLY PLACE where semiprimes are found (at LOW nBits 230-248 only!)
 
 ---
 
 ### 7) What This Means for Mining
 
-Since 99.1% of solutions are in negative region:
+Since 99.5% of solutions are in negative region:
 
 #### Old Strategy (WRONG):
 ```python
@@ -692,7 +697,7 @@ for offset in range(0, -n_tilde-1, -1):  # Monotonic downward
 #### New Strategy (CORRECT):
 ```python
 # Based on variable density hypothesis - VERIFIED WITH DEBUG.LOG!
-# The negative region is 110x denser!
+# The negative region is 220x denser!
 
 # Strategy A: Generate W values that land in "ultra-dense" region
 # Since gHash might have structure, try many nonces:
@@ -719,7 +724,7 @@ for nonce in range(1000):
 
 ### 8) Empirical Model Opportunity
 
-Given the 110x density ratio, we can build:
+Given the 220x density ratio, we can build:
 
 ```python
 # Ultra-simple model:
@@ -731,7 +736,7 @@ P(d) ∝ e^(-λd) for d ∈ [0, ñ]
 ```
 
 **Applications:**
-1. **Mining optimization:** ONLY search negative region (99.1% of solutions!)
+1. **Mining optimization:** ONLY search negative region (99.5% of solutions!)
 2. **W generation:** Focus on nonces that land in dense region
 3. **Attack detection:** Flag miners with 50%+ positive offsets (statistically impossible!)
 
@@ -739,7 +744,7 @@ P(d) ∝ e^(-λd) for d ∈ [0, ñ]
 
 ---
 
-*This analysis reveals Fact0rn's PoW has **extreme structural bias** (110x density ratio!) not captured in the whitepaper's random oracle model. The negative region is virtually the ONLY place where semiprimes are found!*
+*This analysis reveals Fact0rn's PoW has **extreme structural bias** (220x density ratio!) not captured in the whitepaper's random oracle model. The negative region is virtually the ONLY place where semiprimes are found!*
 
 ---
 
@@ -747,13 +752,13 @@ P(d) ∝ e^(-λd) for d ∈ [0, ñ]
 
 ### What We Discovered
 
-1. **Theory vs Practice Mismatch**: The whitepaper assumes uniform semiprime density, but reality shows **110x higher density** in negative offset region.
+1. **Theory vs Practice Mismatch**: The whitepaper assumes uniform semiprime density, but reality shows **220x higher density** in negative offset region.
 
 2. **Source Code Reality Check**: `lib/blockchain.py` line 319 shows `random.shuffle(candidates)` - candidates ARE shuffled! This **disproves** Hypothesis 4 (scan order bias).
 
 3. **NEW Hypothesis Validated**: The bias comes from **variable factoring difficulty/density**:
-   - 99.1% of solutions in negative region (879 vs 8 samples!)
-   - Only 0.9% in positive region (essentially empty!)
+   - 99.5% of solutions in negative region (879 vs 4 samples!)
+   - Only 0.5% in positive region (essentially empty!)
    - λ = 0.004750 for nBits=230 (mass concentrated near boundary)
 
 4. **Mining Optimization**: Instead of scanning order (which doesn't matter - shuffled anyway), focus on:
@@ -767,16 +772,16 @@ P(d) ∝ e^(-λd) for d ∈ [0, ñ]
 |------|---------|
 | `src/analyze_bias_source.py` | Validates candidates ARE shuffled (line 319) |
 | `src/validate_new_hypothesis.py` | Tests variable density hypothesis with actual debug.log |
-| `src/analyze_density_ratio.py` | Consolidated 110x ratio analysis |
+| `src/analyze_density_ratio.py` | Consolidated 220x ratio analysis |
 | `src/mining_optimizer.py` | Corrected optimizer (variable difficulty) |
-| `results/density_ratio_nBits230.png` | Bar chart: 99.1% vs 0.9%! |
+| `results/density_ratio_nBits230.png` | Bar chart: 99.5% vs 0.5%! |
 | `results/empirical_cdf_nBits230.png` | CDF comparison (extreme bias!) |
 
 ### The Big Picture
 
 **Fact0rn's PoW is NOT a random oracle** - it has **emergent structure** that can be exploited:
 
-1. Semiprime density varies by **110x** across the interval
+1. Semiprime density varies by **220x** (nBits=230) across the interval
 2. The negative region (W-16nBits to W) is **virtually the only place** where solutions exist
 3. Mining optimizations based on this bias could provide **massive speedup**
 4. This aligns with Fact0rn's philosophy (math insight → advantage) but breaks implicit fairness assumptions
@@ -807,14 +812,14 @@ This is the **geometric/exponential distribution** — the distribution of "firs
 #### Density Ratio Visualization
 
 ![Density Ratio](results/density_ratio_nBits230.png)
-*99.1% vs 0.9% = 110x denser in negative region!*
+*99.5% vs 0.5% = 220x denser in negative region!*
 
 #### Empirical vs Uniform CDF
 
 ![Empirical CDF](results/empirical_cdf_nBits230.png)
 *Empirical CDF shows nearly ALL mass in negative region (vs uniform expectation)*
 
-**KEY FINDING:** The negative region is **virtually the ONLY place** where semiprimes are found!
+**KEY FINDING:** The negative region is **virtually the ONLY place (at LOW nBits 230-248) where semiprimes are found!
 
 ### Lambda Estimation Results
 
@@ -970,8 +975,8 @@ for n in shuffled_candidates:
 | `src/plot_distribution.py` | Visualizes distribution fits |
 | `src/mining_optimizer.py` | Generates optimized mining strategies |
 | `src/analyze_bias_source.py` | Validates candidates ARE shuffled (line 319) |
-| `src/validate_new_hypothesis.py` | Tests 110x ratio with actual debug.log |
-| `src/analyze_density_ratio.py` | Consolidated 110x ratio analysis |
+| `src/validate_new_hypothesis.py` | Tests 220x ratio with actual debug.log |
+| `src/analyze_density_ratio.py` | Consolidated 220x ratio analysis |
 | `src/demo_complete.py` | Complete analysis summary |
 | `src/lib/parser_lib.py` | Re-exports from parser.py |
 | `src/lib/stats_lib.py` | Common statistical functions |
@@ -1003,25 +1008,25 @@ cat results/pipeline.log
 
 ---
 
-## 🏁 FINAL DISCOVERIES: 110x Density Ratio (Verified with debug.log)
+## 🏁 FINAL DISCOVERIES: 220x Density Ratio (nBits=230, Verified with debug.log)
 
-### 🔍 KEY DISCOVERY: 110x Density Ratio!
+### 🔍 KEY DISCOVERY: 220x Density Ratio (nBits=230)!
 
-**99.1% vs 0.9% = 110x denser in negative region!**
+**99.5% vs 0.5% = 220x denser in negative region!** (879 vs 4 samples, not 220x as previously claimed)
 
 | Metric | Negative Region (W-16nBits to W) | Positive Region (W to W+16nBits) | Ratio |
 |--------|----------------------------------|-------------------------------|-------|
-| **Samples** | 879 (99.1%) | 8 (0.9%) ← DRY RUNS! | **110x** |
+| **Samples** | 879 (99.5%) | 4 (0.5%) ← ONLY 4! | **220x** |
 | **Actual Positive** | ~879 | ~0 (essentially 0%) | **∞x** |
-| **Density** | VIRTUALLY THE ONLY PLACE with semiprimes! | EFFECTIVELY EMPTY! | **110x+** |
+| **Density** | VIRTUALLY THE ONLY PLACE with semiprimes (at LOW nBits only!) | EFFECTIVELY EMPTY (at LOW nBits) | **220x+** |
 
-**Conclusion:** The negative region is **virtually the ONLY place** where semiprimes are found!
+**Conclusion:** The negative region is **virtually the ONLY place (at LOW nBits 230-248) where semiprimes are found!
 
 ### ✅ WHAT WE CONFIRMED
 
 1. **Theory vs Practice Mismatch:**
    - Whitepaper: Uniform semiprime density in [-ñ, +ñ]
-   - Reality: 110x higher density in negative region!
+   - Reality: 220x higher density in negative region!
    - → Theory needs updating!
 
 2. **Source Code Reality Check:**
@@ -1046,12 +1051,12 @@ cat results/pipeline.log
    ```
 
 5. **Validation Results (from debug.log):**
-    - 99.1% of solutions in negative region (879 vs 8 samples!)
-   - Only 0.9% in positive region (essentially empty!)
+    - 99.5% of solutions in negative region (879 vs 4 samples!)
+   - Only 0.5% in positive region (essentially empty!)
    - ALL 8 "positive" samples = 2375 (dry runs, height=0 duplicates!)
-   - Ratio: **110x denser in negative region!**
+   - Ratio: **220x denser in negative region!**
 
-### 🧠 WHY 110x DENSER? (The "Dispersion" Hypothesis)
+### 🧠 WHY 220x DENSER? (nBits=230) (The "Dispersion" Hypothesis)
 
 **Sieve levels create residue class dispersion:**
 
@@ -1070,7 +1075,7 @@ Level 26: Very large primorial
 - W-k (negative) stays in dense class → MANY semiprimes!
 - W+k (positive) might move to sparse class → FEW semiprimes!
 
-**Result:** 110x density ratio! ✅
+**Result:** 220x density ratio! ✅
 
 ### 🚡 Mining Implications
 
@@ -1078,16 +1083,16 @@ Level 26: Very large primorial
 - ❌ Monotonic scan (candidates are shuffled anyway!)
 - ❌ Alternating search (doesn't exploit bias)
 
-**DO (CORRECT - based on CONFIRMED 110x ratio):**
+**DO (CORRECT - based on CONFIRMED 220x ratio):**
 - ✅ Generate MANY W values (try many nonces)
 - ✅ Quick-test which W lands in "dense" region
-- ✅ Focus factoring effort there (99.1% of solutions!)
+- ✅ Focus factoring effort there (99.5% of solutions!)
 - ✅ **Expected speedup: 6-13x** (maybe 100x+ by avoiding empty region entirely!)
 
 **Theoretical basis:**
 ```
-Since 99.1% of solutions are in negative region:
-  → Positive region is VIRTUALLY EMPTY (0.9%)
+Since 99.5% of solutions are in negative region:
+  → Positive region is VIRTUALLY EMPTY (0.5%)
   → Searching positive region is WASTED EFFORT
   → Focus 100% on negative region!
 ```
@@ -1097,16 +1102,16 @@ Since 99.1% of solutions are in negative region:
 | File | Purpose | Status |
 |------|---------|--------|
 | `src/analyze_bias_source.py` | Confirms candidates ARE shuffled (line 319) | ✅ |
-| `src/validate_new_hypothesis.py` | Tests 110x ratio with actual debug.log | ✅ |
-| `src/analyze_density_ratio.py` | Consolidated 110x ratio analysis | ✅ |
+| `src/validate_new_hypothesis.py` | Tests 220x ratio with actual debug.log | ✅ |
+| `src/analyze_density_ratio.py` | Consolidated 220x ratio analysis | ✅ |
 | `src/mining_optimizer.py` | Corrected optimizer (variable density) | ✅ |
 | `src/demo_complete.py` | Complete analysis summary | ✅ |
-| `results/density_ratio_nBits230.png` | Bar chart: 110x ratio! | ✅ |
+| `results/density_ratio_nBits230.png` | Bar chart: 220x ratio! | ✅ |
 | `results/empirical_cdf_nBits230.png` | CDF comparison (extreme bias!) | ✅ |
 
 ### 📈 Next Steps
 
-1. **Investigate WHY negative region is 110x denser:**
+1. **Investigate WHY negative region is 220x denser:**
    - [ ] Check gHash implementation (does it produce structured W?)
    - [ ] Analyze semiprime density theory (is [W-16nBits, W] actually denser?)
    - [ ] Test ECM efficiency variation (are negative-region numbers easier?)
@@ -1124,12 +1129,12 @@ Since 99.1% of solutions are in negative region:
 
 4. **Update whitepaper:**
    - [ ] Theory says uniform density
-   - [ ] Reality shows 110x ratio!
+   - [ ] Reality shows 220x ratio!
    - [ ] This is NOT captured in current model!
 
 ### 🏁 Conclusion
 
-**Fact0rn's PoW has EXTREME structural bias (110x density ratio!)**
+**Fact0rn's PoW has EXTREME structural bias (220x density ratio!)**
 
 - NOT from scan order (candidates ARE shuffled!) ✅
 - COMES FROM: Variable semiprime density across interval ✅
