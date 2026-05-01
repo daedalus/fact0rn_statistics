@@ -7,51 +7,14 @@ messages like: 2026-04-30T14:18:40Z UpdateTip: new best=c0131e22a4856afdd9705a13
 """
 
 import sys
-import math
-from statistics import *
+from statistics import mean, median, mode, stdev
+from lib.stats_lib import skew, kurtosis, mad, medad, cv, stderr, pvariance, variance
+from lib.parser_lib import parse_debug_log
 
-def skew(data):
-  m = mean(data)
-  n = len(data)
-  m3 = sum((x - m)**3 for x in data) / n
-  m2 = sum((x - m)**2 for x in data) / n
-  return m3 / (m2 ** 1.5)
+histo = parse_debug_log(sys.argv[1])
+valid_rows = sum(len(v) for v in histo.values())
+sys.stderr.write(f"Total valid rows {valid_rows}\n")
 
-def kurtosis(data):
-  m = mean(data)
-  n = len(data)
-  m4 = sum((x - m)**4 for x in data) / n
-  m2 = sum((x - m)**2 for x in data) / n
-  return m4 / (m2 ** 2) - 3
-
-def mad(data):
-  m = mean(data)
-  return mean([abs(x - m) for x in data])
-
-def medad(data):
-  med = median(data)
-  return median([abs(x - med) for x in data])
-
-def cv(data):
-  m = mean(data)
-  if m == 0:
-    return 0.0
-  return (stdev(data) / m) * 100
-
-def stderr(data):
-  return stdev(data) / math.sqrt(len(data))
-
-histo = {}
-for line in open(sys.argv[1],"r"):
-  if "UpdateTip" in line:
-    D = line.split()
-    if len(D) > 7:
-      bits = D[6].split("=")[1]
-      wOffset = int(D[7].split("=")[1])
-      if bits in histo:
-        histo[bits].append(wOffset)
-      else:
-        histo[bits] = []
 
 print("For each nBits calculate their wOffset stats:")
 print("nBits count min median mean mode stdev skew kurtosis pvariance variance max mad cv medad stderr")

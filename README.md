@@ -667,8 +667,8 @@ P(d) ∝ e^(-λd) for d ∈ [0, ñ]
 |------|---------|
 | `src/analyze_bias_source.py` | Validates candidates ARE shuffled (line 319) |
 | `src/validate_new_hypothesis.py` | Tests variable density hypothesis with actual debug.log |
-| `src/visualize_density.py` | Creates 110x ratio visualizations |
-| `src/mining_optimizer_v2.py` | Corrected optimizer (variable difficulty) |
+| `src/analyze_density_ratio.py` | Consolidated 110x ratio analysis |
+| `src/mining_optimizer.py` | Corrected optimizer (variable difficulty) |
 | `results/density_ratio_nBits230.png` | Bar chart: 99.1% vs 0.9%! |
 | `results/empirical_cdf_nBits230.png` | CDF comparison (extreme bias!) |
 
@@ -702,7 +702,7 @@ This is the **geometric/exponential distribution** — the distribution of "firs
 
 ### EXTREME Density Ratio Validation ✅ (Requires raw debug.log)
 
-**Tested with `src/visualize_density.py` on actual debug.log (unverifiable from CSV aggregates):**
+**Tested with `src/analyze_density_ratio.py` on actual debug.log (unverifiable from CSV aggregates):**
 
 #### Density Ratio Visualization
 
@@ -996,10 +996,8 @@ Since 99.1% of solutions are in negative region:
 |------|---------|--------|
 | `src/analyze_bias_source.py` | Confirms candidates ARE shuffled (line 319) | ✅ |
 | `src/validate_new_hypothesis.py` | Tests 110x ratio with actual debug.log | ✅ |
-| `src/visualize_density.py` | Creates bar charts (99.1% vs 0.9%!) | ✅ |
-| `src/investigate_why.py` | Analyzes why negative region denser | ✅ |
-| `src/why_110x_ratio.py` | Explains via sieve dispersion | ✅ |
-| `src/mining_optimizer_v2.py` | Corrected optimizer (variable density) | ✅ |
+| `src/analyze_density_ratio.py` | Consolidated 110x ratio analysis | ✅ |
+| `src/mining_optimizer.py` | Corrected optimizer (variable density) | ✅ |
 | `src/demo_complete.py` | Complete analysis summary | ✅ |
 | `results/density_ratio_nBits230.png` | Bar chart: 110x ratio! | ✅ |
 | `results/empirical_cdf_nBits230.png` | CDF comparison (extreme bias!) | ✅ |

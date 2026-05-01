@@ -10,57 +10,20 @@ import matplotlib
 
 matplotlib.use('Agg')
 
-def skew(data):
-    m = mean(data)
-    n = len(data)
-    m3 = sum((x - m)**3 for x in data) / n
-    m2 = sum((x - m)**2 for x in data) / n
-    return m3 / (m2 ** 1.5)
+# Import from lib
+from lib.stats_lib import skew, kurtosis, mad, medad, cv, stderr, pvariance, variance
+from lib.parser_lib import parse_debug_log
+from lib.plot_lib import setup_plot, save_plot, plot_line, normalize
 
-def kurtosis(data):
-    m = mean(data)
-    n = len(data)
-    m4 = sum((x - m)**4 for x in data) / n
-    m2 = sum((x - m)**2 for x in data) / n
-    return m4 / (m2 ** 2) - 3  # excess kurtosis
-
-def mad(data):
-    m = mean(data)
-    return mean([abs(x - m) for x in data])
-
-def medad(data):
-    med = median(data)
-    return median([abs(x - med) for x in data])
-
-def cv(data):
-    return stdev(data) / mean(data) * 100  # as percentage
-
-def stderr(data):
-    return stdev(data) / (len(data) ** 0.5)
-
-# Parse debug.log
-histo = {}
-K = set()
-for line in open(sys.argv[1], "r"):
-    if "UpdateTip" in line:
-        D = line.split()
-        Hash = D[3].split("=")[1]
-        height = D[4].split("=")[1]
-        key = (Hash,height)
-        if key not in K:
-            if len(D) > 7:
-                bits = D[6].split("=")[1]
-                wOffset = int(D[7].split("=")[1])
-                if bits in histo:
-                    histo[bits].append(wOffset)
-                else:
-                    histo[bits] = []
-            K.add(key)
+# Parse debug.log using library function
+histo = parse_debug_log(sys.argv[1])
+valid_rows = sum(len(v) for v in histo.values())
+sys.stderr.write(f"Total valid rows {valid_rows}\n")
 
 # Extract statistics
 bits_sorted = sorted(histo.keys(), key=int)
-min_vals, median_vals, mean_vals, mode_vals, stdev_vals, skew_vals, pvar_vals, var_vals, max_vals, count_vals = [], [], [], [], [], [], [], [], [], []
-mad_vals, cv_vals, medad_vals, kurt_vals, stderr_vals = [], [], [], [], []
+min_vals, median_vals, mean_vals, mode_vals, stdev_vals, skew_vals, kurt_vals, pvar_vals, var_vals, max_vals, count_vals = [], [], [], [], [], [], [], [], [], [], []
+mad_vals, cv_vals, medad_vals, stderr_vals = [], [], [], []
 
 for bits in bits_sorted:
     h = histo[bits]
@@ -70,14 +33,14 @@ for bits in bits_sorted:
     mode_vals.append(mode(h))
     stdev_vals.append(round(stdev(h), 2))
     skew_vals.append(round(skew(h), 2))
+    kurt_vals.append(round(kurtosis(h), 2))
     pvar_vals.append(round(pvariance(h), 2))
-    var_vals.append(round(variance(h)))
+    var_vals.append(round(variance(h), 2))
     max_vals.append(max(h))
     count_vals.append(len(h))
     mad_vals.append(round(mad(h), 2))
     cv_vals.append(round(cv(h), 2))
     medad_vals.append(round(medad(h), 2))
-    kurt_vals.append(round(kurtosis(h), 2))
     stderr_vals.append(round(stderr(h), 2))
 
 bits_numeric = [int(b) for b in bits_sorted]
@@ -95,9 +58,9 @@ with open(csv_filename, 'w', newline='') as csvfile:
     for i, bits in enumerate(bits_sorted):
         C += count_vals[i]
         writer.writerow([bits, count_vals[i], min_vals[i], median_vals[i], mean_vals[i], mode_vals[i],
-                        stdev_vals[i], skew_vals[i], kurt_vals[i], pvar_vals[i], var_vals[i], max_vals[i],
-                        mad_vals[i], cv_vals[i], medad_vals[i], stderr_vals[i]])
-                        
+                          stdev_vals[i], skew_vals[i], kurt_vals[i], pvar_vals[i], var_vals[i], max_vals[i],
+                          mad_vals[i], cv_vals[i], medad_vals[i], stderr_vals[i]])
+
     # GROUPED row: must have exactly 16 fields (matching header)
     writer.writerow([
         'GROUPED',
@@ -108,141 +71,85 @@ with open(csv_filename, 'w', newline='') as csvfile:
         mode(all_wOffsets),  # mode
         round(stdev(all_wOffsets), 2),  # stdev
         round(skew(all_wOffsets), 2),  # skew
-        round(kurtosis(all_wOffsets), 2),  # kurtosis (was missing)
+        round(kurtosis(all_wOffsets), 2),  # kurtosis
         round(pvariance(all_wOffsets), 2),  # pvariance
         round(variance(all_wOffsets), 2),  # variance
         max(all_wOffsets),  # max
-        round(mad(all_wOffsets), 2),  # mad (was missing)
-        round(cv(all_wOffsets), 2),  # cv (was missing)
-        round(medad(all_wOffsets), 2),  # medad (was missing)
-        round(stderr(all_wOffsets), 2)  # stderr (was missing)
+        round(mad(all_wOffsets), 2),  # mad
+        round(cv(all_wOffsets), 2),  # cv
+        round(medad(all_wOffsets), 2),  # medad
+        round(stderr(all_wOffsets), 2)  # stderr
     ])
 
 print(f"Statistics exported to {csv_filename}")
 
 # Plot 1: Central tendencies
-plt.figure(figsize=(12, 6))
-plt.plot(bits_numeric, min_vals, 'o-', label='min', markersize=3)
-plt.plot(bits_numeric, median_vals, 's-', label='median', markersize=3)
-plt.plot(bits_numeric, mean_vals, '^-', label='mean', markersize=3)
-plt.plot(bits_numeric, mode_vals, 'd-', label='mode', markersize=3)
-plt.plot(bits_numeric, max_vals, 'v-', label='max', markersize=3)
-plt.xlabel('nBits')
-plt.ylabel('wOffset value')
-plt.title('Fact0rn wOffset - Central Tendencies')
+setup_plot(figsize=(12, 6), title='Fact0rn wOffset - Central Tendencies', xlabel='nBits', ylabel='wOffset value')
+plot_line(bits_numeric, min_vals, 'o-', label='min')
+plot_line(bits_numeric, median_vals, 's-', label='median')
+plot_line(bits_numeric, mean_vals, '^-', label='mean')
+plot_line(bits_numeric, mode_vals, 'd-', label='mode')
+plot_line(bits_numeric, max_vals, 'v-', label='max')
 plt.legend()
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig('../results/stats_central.png', dpi=150)
-plt.close()
+save_plot('../results/stats_central.png')
 
 # Plot 2: Standard deviation
-plt.figure(figsize=(12, 6))
-plt.plot(bits_numeric, stdev_vals, 'o-', color='blue', markersize=3)
-plt.xlabel('nBits')
-plt.ylabel('Standard Deviation')
-plt.title('Fact0rn wOffset - Standard Deviation')
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig('../results/stats_stdev.png', dpi=150)
-plt.close()
+setup_plot(title='Fact0rn wOffset - Standard Deviation', xlabel='nBits', ylabel='Standard Deviation')
+plot_line(bits_numeric, stdev_vals, 'o-', color='blue', label='stdev')
+plt.legend()
+save_plot('../results/stats_stdev.png')
 
 # Plot 3: Skewness
-plt.figure(figsize=(12, 6))
-plt.plot(bits_numeric, skew_vals, 'o-', color='green', markersize=3)
-plt.xlabel('nBits')
-plt.ylabel('Skewness')
-plt.title('Fact0rn wOffset - Skewness')
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig('../results/stats_skew.png', dpi=150)
-plt.close()
-
-# Plot 4: Variance (both population and sample)
-plt.figure(figsize=(12, 6))
-plt.plot(bits_numeric, pvar_vals, 'o-', label='pvariance', markersize=3)
-plt.plot(bits_numeric, var_vals, 's-', label='variance', markersize=3)
-plt.xlabel('nBits')
-plt.ylabel('Variance')
-plt.title('Fact0rn wOffset - Variance')
+setup_plot(title='Fact0rn wOffset - Skewness', xlabel='nBits', ylabel='Skewness')
+plot_line(bits_numeric, skew_vals, 'o-', color='green', label='skew')
 plt.legend()
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig('../results/stats_variance.png', dpi=150)
-plt.close()
+save_plot('../results/stats_skew.png')
 
-# Plot 5: Sample count per nBits
-plt.figure(figsize=(12, 6))
+# Plot 4: Kurtosis
+setup_plot(title='Fact0rn wOffset - Kurtosis (Excess)', xlabel='nBits', ylabel='Kurtosis')
+plot_line(bits_numeric, kurt_vals, 'o-', color='magenta', label='kurtosis')
+plt.legend()
+save_plot('../results/stats_kurtosis.png')
+
+# Plot 5: Variance
+setup_plot(title='Fact0rn wOffset - Variance', xlabel='nBits', ylabel='Variance')
+plot_line(bits_numeric, pvar_vals, 'o-', label='pvariance')
+plot_line(bits_numeric, var_vals, 's-', label='variance')
+plt.legend()
+save_plot('../results/stats_variance.png')
+
+# Plot 6: Sample count
+setup_plot(title='Fact0rn wOffset - Sample Count per nBits', xlabel='nBits', ylabel='Sample Count')
 plt.bar(bits_numeric, count_vals, alpha=0.7, color='purple')
-plt.xlabel('nBits')
-plt.ylabel('Sample Count')
-plt.title('Fact0rn wOffset - Sample Count per nBits')
-plt.grid(True, alpha=0.3, axis='y')
-plt.tight_layout()
-plt.savefig('../results/stats_count.png', dpi=150)
-plt.close()
+plt.legend()
+save_plot('../results/stats_count.png')
 
-# Plot 6: Mean Absolute Deviation (MAD)
-plt.figure(figsize=(12, 6))
-plt.plot(bits_numeric, mad_vals, 'o-', color='orange', markersize=3)
-plt.xlabel('nBits')
-plt.ylabel('MAD')
-plt.title('Fact0rn wOffset - Mean Absolute Deviation')
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig('../results/stats_mad.png', dpi=150)
-plt.close()
+# Plot 7: MAD
+setup_plot(title='Fact0rn wOffset - Mean Absolute Deviation', xlabel='nBits', ylabel='MAD')
+plot_line(bits_numeric, mad_vals, 'o-', color='orange', label='mad')
+plt.legend()
+save_plot('../results/stats_mad.png')
 
-# Plot 7: Coefficient of Variation (CV)
-plt.figure(figsize=(12, 6))
-plt.plot(bits_numeric, cv_vals, 'o-', color='red', markersize=3)
-plt.xlabel('nBits')
-plt.ylabel('CV (%)')
-plt.title('Fact0rn wOffset - Coefficient of Variation')
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig('../results/stats_cv.png', dpi=150)
-plt.close()
+# Plot 8: CV
+setup_plot(title='Fact0rn wOffset - Coefficient of Variation', xlabel='nBits', ylabel='CV (%)')
+plot_line(bits_numeric, cv_vals, 'o-', color='red', label='cv')
+plt.legend()
+save_plot('../results/stats_cv.png')
 
-# Plot 8: Median Absolute Deviation (MedAD)
-plt.figure(figsize=(12, 6))
-plt.plot(bits_numeric, medad_vals, 'o-', color='cyan', markersize=3)
-plt.xlabel('nBits')
-plt.ylabel('MedAD')
-plt.title('Fact0rn wOffset - Median Absolute Deviation')
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig('../results/stats_medad.png', dpi=150)
-plt.close()
-
-# Plot 9: Kurtosis
-plt.figure(figsize=(12, 6))
-plt.plot(bits_numeric, kurt_vals, 'o-', color='magenta', markersize=3)
-plt.xlabel('nBits')
-plt.ylabel('Kurtosis')
-plt.title('Fact0rn wOffset - Kurtosis (Excess)')
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig('../results/stats_kurtosis.png', dpi=150)
-plt.close()
+# Plot 9: MedAD
+setup_plot(title='Fact0rn wOffset - Median Absolute Deviation', xlabel='nBits', ylabel='MedAD')
+plot_line(bits_numeric, medad_vals, 'o-', color='cyan', label='medad')
+plt.legend()
+save_plot('../results/stats_medad.png')
 
 # Plot 10: Standard Error
-plt.figure(figsize=(12, 6))
-plt.plot(bits_numeric, stderr_vals, 'o-', color='brown', markersize=3)
-plt.xlabel('nBits')
-plt.ylabel('Standard Error')
-plt.title('Fact0rn wOffset - Standard Error of Mean')
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig('../results/stats_stderr.png', dpi=150)
-plt.close()
+setup_plot(title='Fact0rn wOffset - Standard Error of Mean', xlabel='nBits', ylabel='Standard Error')
+plot_line(bits_numeric, stderr_vals, 'o-', color='brown', label='stderr')
+plt.legend()
+save_plot('../results/stats_stderr.png')
 
-# Plot 11: All normalized to 0-1 range
-plt.figure(figsize=(16, 8))
-def normalize(lst):
-    mn, mx = min(lst), max(lst)
-    return [(x - mn)/(mx - mn) for x in lst]
-
+# Plot 11: All normalized
+setup_plot(figsize=(16, 8), title='Fact0rn wOffset - All Statistics (Normalized)', xlabel='nBits', ylabel='Normalized Value (0-1)')
 plt.plot(bits_numeric, normalize(min_vals), 'o-', label='min (norm)', markersize=2)
 plt.plot(bits_numeric, normalize(median_vals), 's-', label='median (norm)', markersize=2)
 plt.plot(bits_numeric, normalize(mean_vals), '^-', label='mean (norm)', markersize=2)
@@ -267,17 +174,15 @@ plt.tight_layout()
 plt.savefig('../results/stats_all_normalized.png', dpi=150)
 plt.close()
 
-print("  ../results/stats_mad.png")
-print("  ../results/stats_cv.png")
-print("  ../results/stats_medad.png")
-print("  ../results/stats_kurtosis.png")
-print("  ../results/stats_stderr.png")
-
-print("  ../results/stats_count.png")
-
 print("Generated plots:")
 print("  ../results/stats_central.png")
 print("  ../results/stats_stdev.png")
 print("  ../results/stats_skew.png")
+print("  ../results/stats_kurtosis.png")
 print("  ../results/stats_variance.png")
+print("  ../results/stats_count.png")
+print("  ../results/stats_mad.png")
+print("  ../results/stats_cv.png")
+print("  ../results/stats_medad.png")
+print("  ../results/stats_stderr.png")
 print("  ../results/stats_all_normalized.png")
