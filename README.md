@@ -28,10 +28,12 @@ fact0rn_statistics/
 │       ├── plot_lib.py     # Plotting utilities
 │       └── csv_lib.py      # CSV loading functions
 └── results/              # Generated outputs
+    ├── pipeline.log
     ├── wOffset_statistics.csv
     ├── stats_*.png          # Statistical plots
     ├── distribution_*.png   # Distribution analysis plots
-    └── FACT0RN_whitepaper.pdf
+    └── docs/                 # Documentation
+        └── FACT0RN_whitepaper.pdf
 ```
 
 ## Prerequisites
