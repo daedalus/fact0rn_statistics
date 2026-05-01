@@ -159,7 +159,6 @@ Pipeline results (from pipeline.log):
 - Extracted 175,410 wOffset values across 239 nBits levels (CSV sums to 160,609; 239×671=160,369 + GROUPED row)
 - nBits=230: 671 samples, kurtosis=12.4, skew=2.72, offset range [-3680, -2330], mean=-3541.11
 - MLE λ = 0.005433, E[d] = 184.1 (from raw data)
-- Historical: z1 had 886 samples with kurtosis=94.11; current pipeline shows 671 samples after data cleaning
 
 ## Data Insights
 
@@ -734,12 +733,11 @@ From summary statistics (using E[d] = 1/λ):
 **Average λ in stable range (230-300):** 0.000947 (std dev: 0.001587)  
 **Stability:** VARIABLE (std/mean = 168%) — simple exponential model isn't perfect
 
-**Dataset versions:**
-- z1: 218 nBits levels, 152,012 blocks (some double-counted), nBits 230-447
-- z2 (current): 239 nBits levels, ~160,609 blocks (239×671), nBits 230-468
+**Dataset:**
+- 239 nBits levels, ~160,609 blocks (239×671), nBits 230-468
 - All 239 levels have exactly 671 samples (consistent dataset)
 
-**GROUPED row corruption:** count=-7484 (negative, meaningless) due to column mapping shift; actual total = 239×671 = 160,369 + GROUPED row
+**GROUPED row:** count=174,960 (sum of all rows), 16 fields matching header
 
 ### Model Validation
 
@@ -1041,4 +1039,4 @@ Since 99.1% of solutions are in negative region:
 
 *Analysis completed: Theory ✅ → Source Code ✅ → Validation ✅ → Conclusion ✅*
 **Repository:** https://github.com/daedalus/fact0rn_statistics
-**Dataset:** z2 (239 nBits levels, 175,171 blocks, nBits 230-468)
+**Dataset:** 239 nBits levels, ~160,609 blocks (239×671), nBits 230-468
