@@ -150,15 +150,16 @@ For each unique `nBits` value, the following metrics are calculated:
 ```
 For each nBits calculate their wOffset stats:
 nBits min median mean mode stdev skew pvariance variance max
-230 -3680 -3584.0 -3502.6 -3665 556.26 9.3 309078.95 309428 2375 (883 samples)
+230 -3680 -3584.0 -3502.6 -3665 556.26 11.68 309078.95 309428 2375 (882 samples, kurtosis=167.83)
 231 -3696 -3479 -3361.8 -3653 359.68 2.05 129175.75 129369 -961
 ...
 ```
 
 Pipeline results (from logfile.txt):
-- Extracted 175,410 wOffset values across 239 nBits levels
-- nBits=230: 883 samples, offset range [-3680, 2375], d range [0, 6055]
+- Extracted 175,410 wOffset values across 239 nBits levels (CSV sums to 175,171; delta=239 = one per nBits level due to off-by-one in logfile extraction)
+- nBits=230: 882 samples (4 fewer than z1), kurtosis=167.83 (vs 94.11 in z1), skew=11.68, offset range [-3680, 2375]
 - MLE λ = 0.005433, E[d] = 184.1
+- Note: Removed blocks were far-right tail outliers; distribution even more concentrated near left boundary
 
 ## Data Insights
 
@@ -191,12 +192,13 @@ Analysis of the Fact0rn whitepaper and `wOffset_statistics.csv` reveals key insi
 
 ### 3. Heavy-Tailed Distributions at Low Difficulty
 
-| nBits | Kurtosis | Interpretation |
-|--------|----------|------------------|
-| 230 | 94.11 | Extreme outliers (normal=0) |
-| 240 | 5.26 | Heavy tails |
-| 260 | 0.17 | More normal |
-| 300 | 0.04 | Near-normal |
+| nBits | Kurtosis | Skew | Interpretation |
+|--------|----------|------|------------------|
+| 230 | 167.83 | 11.68 | Extreme outliers, doubled from z1 (normal=0) |
+| 240 | 5.26 | 2.02 | Heavy tails |
+| 260 | 0.17 | 0.3 | More normal |
+| 300 | 0.04 | 0.1 | Near-normal |
+| 448-468 | -0.9 to -0.1 | -0.22 to +0.05 | Near-uniform, lightly platykurtic |
 
 **Insight:** At low difficulties, the wOffset distribution has **very heavy tails** (kurtosis >> 0), meaning extreme values are common. This suggests the factoring algorithm (ECM) finds widely scattered semiprimes within the search interval.
 
@@ -216,7 +218,7 @@ Analysis of the Fact0rn whitepaper and `wOffset_statistics.csv` reveals key insi
 
 - **Sample count**: ~671 blocks per nBits for 213/239 difficulty levels (230-340 range), with anomalies: nBits=287 has 4031 blocks, nBits=288-289 have 2015 each, nBits=447 has 142
 - **Design target**: 30 minutes per block (whitepaper Section 4)
-- **Total blocks analyzed**: 175,410 blocks (239 nBits levels, anomalies skew total)
+- **Total blocks analyzed**: 175,171 blocks (239 nBits levels, CSV sum; logfile reports 175,410 due to off-by-one per nBits level)
 
 **Insight:** The system maintains **generally consistent block production** across difficulty adjustments, with unexplained anomalies possibly from reorgs or retarget artifacts.
 
@@ -732,6 +734,13 @@ From summary statistics (using E[d] = 1/λ):
 **Average λ in stable range (230-300):** 0.000925 (std dev: 0.001508)  
 **Stability:** VARIABLE (std/mean = 163%) — simple exponential model isn't perfect
 
+**Dataset versions:**
+- z1: 218 nBits levels, 152,012 blocks (some double-counted), nBits 230-447
+- z2 (current): 239 nBits levels, 175,171 blocks, nBits 230-468
+- 21 new nBits levels added (448-468), 20 existing levels updated with more blocks
+
+**GROUPED row corruption:** count=-7484 (negative, meaningless) due to column mapping shift in aggregation code.
+
 ### Model Validation
 
 **Test 1: Memoryless Property** (key exponential feature)
@@ -746,10 +755,11 @@ P(d > k+m | d > k) ≈ P(d > m)
 | 100 | 100 | 0.5361 | 0.6219 | 0.0858 |
 | 100 | 500 | 0.0886 | 0.0930 | 0.0045 |
 | 500 | 100 | 0.7308 | 0.6219 | 0.1089 |
+| 500 | 500 | 0.3333 | 0.0661 | 0.2672 (5x discrepancy!) |
 
-**Average error:** 0.1288 → ⚠️ Memoryless property QUESTIONABLE (validated on 175,410 blocks across 239 nBits levels)
+**Average error:** 0.1288 → ⚠️ Memoryless property FAILS (exponential model is wrong; distribution is heavier-tailed)
 
-**Conclusion:** Simple exponential model is imperfect, but **bias is real and exploitable**.
+**Conclusion:** Exponential model is demonstrably wrong at low nBits (memoryless test fails by 5x for k=500,m=500). Distribution at nBits=230 is more consistent with **truncated power-law or mixture model** (tight cluster near left boundary + sparse right tail). Bias is real but quantitative estimates from logfile should not be trusted for operational use without fitting correct distribution to raw offset data.
 
 **Test 2: Log-Histogram**
 
@@ -836,17 +846,17 @@ for n in shuffled_candidates:
 
 ### Speedup Estimates by nBits
 
-| nBits | Search Space | Expected Work (1/λ) | 80% Mass Range | Speedup vs Uniform |
-|--------|--------------|----------------------|-----------------|-------------------|
-| 230 | 7360 positions | ~177 positions | d ∈ [0, 285] | 41.5x |
-| 231 | 7392 positions | ~334 positions | d ∈ [0, 537] | 22.1x |
-| 232 | 7424 positions | ~148 positions | d ∈ [0, 237] | 50.3x |
-| 233 | 7456 positions | ~384 positions | d ∈ [0, 618] | 19.4x |
-| 234 | 7488 positions | ~141 positions | d ∈ [0, 227] | 53.0x |
-| 250 | 8000 positions | ~600 positions | - | 13.3x |
-| 300 | 9600 positions | ~720 positions | - | 8.9x |
+| nBits | Search Space | Expected Work (1/λ) | 80% Mass Range | Speedup vs Uniform (full window) | One-sided (left only) |
+|--------|--------------|----------------------|-----------------|-------------------|------------------------|
+| 230 | 7360 positions | ~177 positions | d ∈ [0, 285] | 41.5x (2*ñ/E[d]) | 20.8x (ñ/E[d]) |
+| 231 | 7392 positions | ~334 positions | d ∈ [0, 537] | 22.1x | 11.1x |
+| 232 | 7424 positions | ~148 positions | d ∈ [0, 237] | 50.3x | 25.2x |
+| 233 | 7456 positions | ~384 positions | d ∈ [0, 618] | 19.4x | 9.7x |
+| 234 | 7488 positions | ~141 positions | d ∈ [0, 227] | 53.0x | 26.5x |
+| 250 | 8000 positions | ~600 positions | - | 13.3x | 6.7x |
+| 300 | 9600 positions | ~720 positions | - | 8.9x | 4.5x |
 
-**This is "free" hashpower from smarter search order!**
+**Note:** 41.5x assumes current miner scans full window symmetrically; if already scanning downward from left boundary, relevant speedup is 20.8x (one-sided).
 
 ### Files for Empirical Analysis
 
@@ -879,12 +889,13 @@ python3 mining_optimizer.py
 ### Critical Disclaimer
 
 ⚠️ **Model Limitations:**
-1. Memoryless property fails (avg error 0.17) → Not perfectly exponential
+1. Memoryless property FAILS (5x discrepancy for k=500,m=500) → Exponential model is WRONG
 2. Lambda varies across nBits → Simple model too simple
 3. Truncation at 2ñ not fully accounted for
-4. **But the NEGATIVE BIAS is real and exploitable regardless!**
+4. Distribution is heavier-tailed than exponential (kurtosis=167.83 at nBits=230)
+5. **NEGATIVE BIAS is real, but quantitative speedup estimates require truncated power-law or mixture model fit to raw data**
 
-**Even if the model isn't perfect, the bias is structural. Mining optimizations based on this bias should provide significant speedup.**
+**The exponential model is demonstrably wrong. Mining optimizations should use correct distribution (truncated power-law or mixture model) fitted to raw offset data.**
 
 ---
 
@@ -1022,10 +1033,12 @@ Since 99.1% of solutions are in negative region:
 - COMES FROM: Variable semiprime density across interval ✅
 - The negative region is **VIRTUALLY THE ONLY PLACE** where semiprimes are found! ✅
 
-**This bias is exploitable for massive mining advantage.**
+**This bias is exploitable, but the exponential model is WRONG.** The distribution at nBits=230 has extreme kurtosis (167.83) and is heavier-tailed than exponential (memoryless test fails by 5x). A truncated power-law or mixture model (two populations: tight cluster near left boundary + sparse right tail) better fits the data. Mining speedup is real but quantitative estimates require fitting the correct distribution to raw offset data.
+
+**New nBits 448-468 tail behavior:** skew≈0 (−0.22 to +0.05), kurtosis≈−0.9 to −0.1 (lightly platykurtic), stdev=3067-3963. At high nBits, the window fully brackets semiprime density and wOffset is essentially uniform.
 
 ---
 
 *Analysis completed: Theory ✅ → Source Code ✅ → Validation ✅ → Conclusion ✅*
-
 **Repository:** https://github.com/daedalus/fact0rn_statistics
+**Dataset:** z2 (239 nBits levels, 175,171 blocks, nBits 230-468)
