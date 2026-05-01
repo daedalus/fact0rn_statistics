@@ -94,6 +94,17 @@ def main():
         h += histo[bits]
     print(min(h), median(h), round(mean(h),2), mode(h), round(stdev(h),2), round(skew(h),2), round(kurtosis(h),2), round(pvariance(h),2), round(variance(h)), max(h), round(mad(h),2), round(cv(h),2), round(medad(h),2), round(stderr(h),2))
 
+    # Count negative, zero, positive offsets
+    neg = sum(1 for x in h if x < 0)
+    zero = sum(1 for x in h if x == 0)
+    pos = sum(1 for x in h if x > 0)
+    total = len(h)
+    print(f"\nwOffset sign distribution:")
+    print(f"  Negative (<0): {neg} ({neg/total*100:.1f}%)")
+    print(f"  Zero (=0):     {zero} ({zero/total*100:.1f}%)")
+    print(f"  Positive (>0): {pos} ({pos/total*100:.1f}%)")
+    print(f"  Total: {total}")
+
 
 if __name__ == '__main__':
     main()
