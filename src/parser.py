@@ -8,7 +8,7 @@ messages like: 2026-04-30T14:18:40Z UpdateTip: new best=c0131e22a4856afdd9705a13
 
 import sys
 from statistics import mean, median, mode, stdev
-from lib.stats_lib import skew, kurtosis, mad, medad, cv, stderr, pvariance, variance
+from lib.stats_lib import skew, kurtosis, mad, medad, cv, stderr, pvariance, variance, p5, p25, p75, p95, iqr, avg_abs_dev, sq_dev_mean, rms, mag, mage, trend_slope, gvp, cv_rate
 
 def parse_debug_log(debug_log_path, target_nBits=None):
     """
@@ -82,17 +82,17 @@ def main():
     sys.stderr.write(f"Total valid rows {valid_rows}\n")
     
     print("For each nBits calculate their wOffset stats:")
-    print("nBits count min median mean mode stdev skew kurtosis pvariance variance max mad cv medad stderr")
+    print("nBits count min median mean mode stdev skew kurtosis pvariance variance max mad cv medad stderr p5 p25 p75 p95 iqr avg_abs_dev sq_dev_mean rms mag mage trend_slope gvp cv_rate")
     for bits in histo:
         h = histo[bits]
-        print(bits, len(h), min(h), median(h), round(mean(h),2), mode(h), round(stdev(h),2), round(skew(h),2), round(kurtosis(h),2), round(pvariance(h),2), round(variance(h)), max(h), round(mad(h),2), round(cv(h),2), round(medad(h),2), round(stderr(h),2))
+        print(bits, len(h), min(h), median(h), round(mean(h),2), mode(h), round(stdev(h),2), round(skew(h),2), round(kurtosis(h),2), round(pvariance(h),2), round(variance(h)), max(h), round(mad(h),2), round(cv(h),2), round(medad(h),2), round(stderr(h),2), round(p5(h),2), round(p25(h),2), round(p75(h),2), round(p95(h),2), round(iqr(h),2), round(avg_abs_dev(h),2), round(sq_dev_mean(h),2), round(rms(h),2), round(mag(h),2), round(mage(h),2), round(trend_slope(h),2), round(gvp(h),2), round(cv_rate(h),2))
     
     print("grouped nBits stats:")
-    print("min median mean mode stdev skew kurtosis pvariance variance max mad cv medad stderr")
+    print("min median mean mode stdev skew kurtosis pvariance variance max mad cv medad stderr p5 p25 p75 p95 iqr avg_abs_dev sq_dev_mean rms mag mage trend_slope gvp cv_rate")
     h = []
     for bits in histo:
         h += histo[bits]
-    print(min(h), median(h), round(mean(h),2), mode(h), round(stdev(h),2), round(skew(h),2), round(kurtosis(h),2), round(pvariance(h),2), round(variance(h)), max(h), round(mad(h),2), round(cv(h),2), round(medad(h),2), round(stderr(h),2))
+    print(min(h), median(h), round(mean(h),2), mode(h), round(stdev(h),2), round(skew(h),2), round(kurtosis(h),2), round(pvariance(h),2), round(variance(h)), max(h), round(mad(h),2), round(cv(h),2), round(medad(h),2), round(stderr(h),2), round(p5(h),2), round(p25(h),2), round(p75(h),2), round(p95(h),2), round(iqr(h),2), round(avg_abs_dev(h),2), round(sq_dev_mean(h),2), round(rms(h),2), round(mag(h),2), round(mage(h),2), round(trend_slope(h),2), round(gvp(h),2), round(cv_rate(h),2))
 
     # Count negative, zero, positive offsets
     neg = sum(1 for x in h if x < 0)

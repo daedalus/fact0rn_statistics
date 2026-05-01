@@ -11,7 +11,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 # Import from lib
-from lib.stats_lib import skew, kurtosis, mad, medad, cv, stderr, pvariance, variance
+from lib.stats_lib import skew, kurtosis, mad, medad, cv, stderr, pvariance, variance, p5, p25, p75, p95, iqr, avg_abs_dev, sq_dev_mean, rms, mag, mage, trend_slope, gvp, cv_rate
 from lib.parser_lib import parse_debug_log
 from lib.plot_lib import setup_plot, save_plot, plot_line, normalize
 
@@ -24,6 +24,9 @@ sys.stderr.write(f"Total valid rows {valid_rows}\n")
 bits_sorted = sorted(histo.keys(), key=int)
 min_vals, median_vals, mean_vals, mode_vals, stdev_vals, skew_vals, kurt_vals, pvar_vals, var_vals, max_vals, count_vals = [], [], [], [], [], [], [], [], [], [], []
 mad_vals, cv_vals, medad_vals, stderr_vals = [], [], [], []
+p5_vals, p25_vals, p75_vals, p95_vals, iqr_vals = [], [], [], [], []
+avg_abs_dev_vals, sq_dev_mean_vals, rms_vals = [], [], []
+mag_vals, mage_vals, trend_slope_vals, gvp_vals, cv_rate_vals = [], [], [], [], []
 
 for bits in bits_sorted:
     h = histo[bits]
@@ -42,6 +45,19 @@ for bits in bits_sorted:
     cv_vals.append(round(cv(h), 2))
     medad_vals.append(round(medad(h), 2))
     stderr_vals.append(round(stderr(h), 2))
+    p5_vals.append(round(p5(h), 2))
+    p25_vals.append(round(p25(h), 2))
+    p75_vals.append(round(p75(h), 2))
+    p95_vals.append(round(p95(h), 2))
+    iqr_vals.append(round(iqr(h), 2))
+    avg_abs_dev_vals.append(round(avg_abs_dev(h), 2))
+    sq_dev_mean_vals.append(round(sq_dev_mean(h), 2))
+    rms_vals.append(round(rms(h), 2))
+    mag_vals.append(round(mag(h), 2))
+    mage_vals.append(round(mage(h), 2))
+    trend_slope_vals.append(round(trend_slope(h), 2))
+    gvp_vals.append(round(gvp(h), 2))
+    cv_rate_vals.append(round(cv_rate(h), 2))
 
 bits_numeric = [int(b) for b in bits_sorted]
 
@@ -54,14 +70,16 @@ for bits in bits_sorted:
 with open(csv_filename, 'w', newline='') as csvfile:
     C = 0
     writer = csv.writer(csvfile)
-    writer.writerow(['nBits', 'count', 'min', 'median', 'mean', 'mode', 'stdev', 'skew', 'kurtosis', 'pvariance', 'variance', 'max', 'mad', 'cv', 'medad', 'stderr'])
+    writer.writerow(['nBits', 'count', 'min', 'median', 'mean', 'mode', 'stdev', 'skew', 'kurtosis', 'pvariance', 'variance', 'max', 'mad', 'cv', 'medad', 'stderr', 'p5', 'p25', 'p75', 'p95', 'iqr', 'avg_abs_dev', 'sq_dev_mean', 'rms', 'mag', 'mage', 'trend_slope', 'gvp', 'cv_rate'])
     for i, bits in enumerate(bits_sorted):
         C += count_vals[i]
         writer.writerow([bits, count_vals[i], min_vals[i], median_vals[i], mean_vals[i], mode_vals[i],
                           stdev_vals[i], skew_vals[i], kurt_vals[i], pvar_vals[i], var_vals[i], max_vals[i],
-                          mad_vals[i], cv_vals[i], medad_vals[i], stderr_vals[i]])
+                          mad_vals[i], cv_vals[i], medad_vals[i], stderr_vals[i], p5_vals[i], p25_vals[i],
+                          p75_vals[i], p95_vals[i], iqr_vals[i], avg_abs_dev_vals[i], sq_dev_mean_vals[i],
+                          rms_vals[i], mag_vals[i], mage_vals[i], trend_slope_vals[i], gvp_vals[i], cv_rate_vals[i]])
 
-    # GROUPED row: must have exactly 16 fields (matching header)
+    # GROUPED row: must have exactly 29 fields (matching header)
     writer.writerow([
         'GROUPED',
         sum(count_vals),  # count
@@ -78,7 +96,20 @@ with open(csv_filename, 'w', newline='') as csvfile:
         round(mad(all_wOffsets), 2),  # mad
         round(cv(all_wOffsets), 2),  # cv
         round(medad(all_wOffsets), 2),  # medad
-        round(stderr(all_wOffsets), 2)  # stderr
+        round(stderr(all_wOffsets), 2),  # stderr
+        round(p5(all_wOffsets), 2),  # p5
+        round(p25(all_wOffsets), 2),  # p25
+        round(p75(all_wOffsets), 2),  # p75
+        round(p95(all_wOffsets), 2),  # p95
+        round(iqr(all_wOffsets), 2),  # iqr
+        round(avg_abs_dev(all_wOffsets), 2),  # avg_abs_dev
+        round(sq_dev_mean(all_wOffsets), 2),  # sq_dev_mean
+        round(rms(all_wOffsets), 2),  # rms
+        round(mag(all_wOffsets), 2),  # mag
+        round(mage(all_wOffsets), 2),  # mage
+        round(trend_slope(all_wOffsets), 2),  # trend_slope
+        round(gvp(all_wOffsets), 2),  # gvp
+        round(cv_rate(all_wOffsets), 2)  # cv_rate
     ])
 
 print(f"Statistics exported to {csv_filename}")
@@ -146,7 +177,38 @@ save_plot('../results/stats_medad.png')
 setup_plot(title='Fact0rn wOffset - Standard Error of Mean', xlabel='nBits', ylabel='Standard Error')
 plot_line(bits_numeric, stderr_vals, 'o-', color='brown', label='stderr')
 plt.legend()
+# Plot 10: Standard Error
+setup_plot(title='Fact0rn wOffset - Standard Error of Mean', xlabel='nBits', ylabel='Standard Error')
+plot_line(bits_numeric, stderr_vals, 'o-', color='brown', label='stderr')
+plt.legend()
 save_plot('../results/stats_stderr.png')
+
+# Plot 11: Percentiles
+setup_plot(title='Fact0rn wOffset - Percentiles', xlabel='nBits', ylabel='wOffset value')
+plot_line(bits_numeric, p5_vals, 'v-', label='p5')
+plot_line(bits_numeric, p25_vals, 's-', label='p25 (Q1)')
+plot_line(bits_numeric, p75_vals, '^-', label='p75 (Q3)')
+plot_line(bits_numeric, p95_vals, 'd-', label='p95')
+plt.legend()
+save_plot('../results/stats_percentiles.png')
+
+# Plot 12: IQR
+setup_plot(title='Fact0rn wOffset - Interquartile Range', xlabel='nBits', ylabel='IQR')
+plot_line(bits_numeric, iqr_vals, 'o-', color='purple', label='iqr')
+plt.legend()
+save_plot('../results/stats_iqr.png')
+
+# Plot 13: Avg Abs Dev
+setup_plot(title='Fact0rn wOffset - Avg Absolute Deviation', xlabel='nBits', ylabel='avg_abs_dev')
+plot_line(bits_numeric, avg_abs_dev_vals, 'o-', color='brown', label='avg_abs_dev')
+plt.legend()
+save_plot('../results/stats_avg_abs_dev.png')
+
+# Plot 14: RMS
+setup_plot(title='Fact0rn wOffset - Root Mean Square', xlabel='nBits', ylabel='rms')
+plot_line(bits_numeric, rms_vals, 'o-', color='pink', label='rms')
+plt.legend()
+save_plot('../results/stats_rms.png')
 
 # Plot 11: All normalized
 setup_plot(figsize=(16, 8), title='Fact0rn wOffset - All Statistics (Normalized)', xlabel='nBits', ylabel='Normalized Value (0-1)')
@@ -165,6 +227,14 @@ plt.plot(bits_numeric, normalize(mad_vals), 'o:', label='mad (norm)', markersize
 plt.plot(bits_numeric, normalize(cv_vals), '^:', label='cv (norm)', markersize=2)
 plt.plot(bits_numeric, normalize(medad_vals), 'd:', label='medad (norm)', markersize=2)
 plt.plot(bits_numeric, normalize(stderr_vals), 'h:', label='stderr (norm)', markersize=2)
+plt.plot(bits_numeric, normalize(p5_vals), 'v:', label='p5 (norm)', markersize=2)
+plt.plot(bits_numeric, normalize(p25_vals), 's:', label='p25 (norm)', markersize=2)
+plt.plot(bits_numeric, normalize(p75_vals), '^:', label='p75 (norm)', markersize=2)
+plt.plot(bits_numeric, normalize(p95_vals), 'd:', label='p95 (norm)', markersize=2)
+plt.plot(bits_numeric, normalize(iqr_vals), 'o:', label='iqr (norm)', markersize=2)
+plt.plot(bits_numeric, normalize(avg_abs_dev_vals), 'P:', label='avg_abs_dev (norm)', markersize=2)
+plt.plot(bits_numeric, normalize(sq_dev_mean_vals), 'X:', label='sq_dev_mean (norm)', markersize=2)
+plt.plot(bits_numeric, normalize(rms_vals), 'x:', label='rms (norm)', markersize=2)
 plt.xlabel('nBits')
 plt.ylabel('Normalized Value (0-1)')
 plt.title('Fact0rn wOffset - All Statistics (Normalized)')
@@ -185,4 +255,8 @@ print("  ../results/stats_mad.png")
 print("  ../results/stats_cv.png")
 print("  ../results/stats_medad.png")
 print("  ../results/stats_stderr.png")
+print("  ../results/stats_percentiles.png")
+print("  ../results/stats_iqr.png")
+print("  ../results/stats_avg_abs_dev.png")
+print("  ../results/stats_rms.png")
 print("  ../results/stats_all_normalized.png")
