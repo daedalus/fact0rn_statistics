@@ -3,6 +3,22 @@
 ## Overview
 Parses Fact0rn's `~/.factorn/debug.log` to extract `nBits` and `wOffset` values from `UpdateTip` log entries, computes statistical metrics per `nBits` group, and generates visualizations.
 
+## The Math Problem
+
+Fact0rn is a blockchain whose Proof of Work is based on **integer factorization**:
+
+1. **gHash**: A hash chain (SHA3-512 → Scrypt → Whirlpool → Shake2b → prime finding → modular exponentiation) produces a pseudo-random integer **W**.
+2. **The challenge**: Find two primes **p₁, p₂** such that their product is close to W:
+   ```
+   p₁ · p₂ = W + wOffset
+   ```
+3. **Constraint**: The offset must satisfy **|wOffset| ≤ 16 · nBits**, where `nBits` is the difficulty parameter.
+4. **Search space**: The interval **S = [W - 16·nBits, W + 16·nBits]** contains approximately **32·nBits** integers.
+5. **Factoring**: Miners test candidates in S using the **Elliptic Curve Method (ECM)** to find semiprimes (products of two primes).
+6. **Whitepaper assumption**: gHash is "random enough" that semiprimes should be **uniformly distributed** in S, making wOffset roughly symmetric around 0.
+
+**What this project discovered**: The actual wOffset distribution is **heavily biased** toward negative values (~110x more solutions in the negative region), revealing structural properties not captured in the whitepaper's random oracle model.
+
 ## Project Structure
 ```
 fact0rn_statistics/
