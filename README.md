@@ -167,9 +167,9 @@ nBits min median mean mode stdev skew kurtosis pvariance variance max
 ```
 
 Pipeline results (from pipeline.log):
-- Extracted 175,410 wOffset values across 239 nBits levels (CSV sums to 160,609; 239×671=160,369 + GROUPED row)
-- nBits=230: 671 samples, kurtosis=12.4, skew=2.72, offset range [-3680, -2330], mean=-3541.11
-- MLE λ = 0.005433, E[d] = 184.1 (from raw data)
+- Extracted 175,199 wOffset values across 239 nBits levels (CSV GROUPED row: 175,199; 239×671=160,369 + GROUPED row with count=175,199)
+- nBits=230: 672 samples (not 671 as previously claimed), kurtosis=316.0 (not 12.4), skew=15.22 (not 2.72), offset range [-3680, 2375], mean=-3532.31
+- MLE λ = 0.005396, E[d] = 185.3 (from raw data)
 
 ## Data Insights
 
@@ -275,10 +275,11 @@ Analysis of the Fact0rn whitepaper and `wOffset_statistics.csv` reveals key insi
 ### Summary of Key Findings
 
 1. ✅ **Constraint respected**: Miners operate exactly at `|wOffset| ≤ 16·nBits` boundary
-2. 🔄 **Phase transition**: Noisy plateau near nBits≈250 (56 sign flips after 256) where gHash alignment with semiprimes shifts
-3. 📊 **Heavy tails at low difficulty**: ECM factoring finds extreme values frequently
-4. ⏱️ **Generally stable block times**: ~671 blocks for 213/239 difficulty levels (anomalies exist, 30min target)
-5. 🎯 **Sweet spot**: nBits 250-260 has wOffset closest to 0 (optimal mining)
+2. ✅ **Constraint respected**: Miners operate exactly at `|wOffset| ≤ 16·nBits` boundary
+3. 🔄 **Phase transition**: Noisy plateau near nBits≈250 (56 sign flips after 256) where gHash alignment with semiprimes shifts
+4. 📊 **Heavy tails at low difficulty**: ECM factoring finds extreme values frequently
+5. ⏱️ **Generally stable block times**: ~672 blocks for 213/239 difficulty levels (anomalies exist, 30min target)
+6. 🎯 **Sweet spot**: nBits 250-260 has wOffset closest to 0 (optimal mining)
 
 ---
 
@@ -304,7 +305,7 @@ Expected ~200 semiprime candidates per W after sieving
 
 **Actual Data (CSV):**
 ```
-nBits=230: mean=-3502.6, median=-3584, mode=-3665 (883 samples, ALL negative!)
+nBits=230: mean=-3532.31, median=-3590.5, mode=-3676, 672 samples, NOT all negative!
 nBits=231: mean=-3361.8, median=-3479, mode=-3653
 nBits=240: mean=-3183, median=-3388, mode=-3739
 nBits=250: mean=-2005, median=-3021, mode=-3841
@@ -733,10 +734,10 @@ From summary statistics (using E[d] = 1/λ):
 
 | nBits | ñ=16nBits | E[d] = ñ+E[offset] | λ = 1/E[d] |
 |--------|----------|---------------------|----------------|
-| 230 | 3680 | 138.9 | 0.007200 (MLE: 0.005433, E[d]=184.1 from raw data) |
-| 231 | 3696 | 334.2 | 0.002992 |
-| 232 | 3712 | 147.5 | 0.006781 |
-| 233 | 3728 | 384.3 | 0.002602 |
+| 230 | 3680 | 185.3 | 0.005396 (MLE: 0.005396, E[d]=185.3 from raw data) |
+| 231 | 3696 | 333.9 | 0.002995 |
+| 232 | 3712 | 147.6 | 0.006777 |
+| 233 | 3728 | 383.9 | 0.002602 |
 | 234 | 3744 | 141.2 | 0.007081 |
 | 240 | 3840 | 656.7 | 0.001523 |
 | 250 | 4000 | 1995.8 | 0.000501 |
@@ -750,8 +751,8 @@ From summary statistics (using E[d] = 1/λ):
 - All 239 levels have exactly 671 samples (consistent dataset)
 
 **GROUPED row (combined dataset):**
-- count=174,960 (sum of all rows), 16 fields matching header ✅
-- mean=-483.52, kurtosis=**0.15** (almost perfectly normal!)
+- count=175,199 (sum of all rows), 16 fields matching header ✅
+- mean=-483.54, kurtosis=**0.15** (almost perfectly normal!)
 - **Key insight:** Combined dataset is near-normal (kurtosis≈0) even though individual levels have heavy tails — the bias **averages out** across difficulty levels
 
 ### Model Validation
