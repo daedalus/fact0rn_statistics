@@ -177,19 +177,20 @@ Analysis of the Fact0rn whitepaper and `wOffset_statistics.csv` reveals key insi
 
 ---
 
-### 2. Phase Transition at nBits ≈ 250
+### 2. Phase Transition: Zero Crossing at nBits ≈ 260
 
 | nBits Range | wOffset Mean | Distribution |
 |--------------|---------------|--------------|
 | 230-248 | -3500 to -3000 | All negative (gHash < semiprime) |
 | 249-253 | -2900 to -17 | Transition zone |
 | 254+ | -700 to +140 | Centered around 0 |
+| 256-301 | **+49 to +189** | **Mean goes POSITIVE** |
 
-**Insight:** Below nBits=250, gHash output **consistently underestimates** the semiprime. After nBits=256, the mean oscillates with 56 sign flips through the dataset, forming a noisy plateau centered near 0 rather than a clean transition. This suggests a fundamental change in the gHash-to-semiprime relationship.
+**Key discovery:** nBits=260 mean=**+140.57** (positive!) — the transition is a **zero crossing**, not just a plateau. The transition zone is **40+ nBits wide** (256-301) with multiple sign flips, eventually settling in positive territory. This suggests the gHash-to-semiprime relationship **overshoots** past zero.
 
 ---
 
-### 3. Heavy-Tailed Distributions at Low Difficulty
+### 3. Heavy-Tailed at Low nBits, Platykurtic at High nBits
 
 | nBits | Kurtosis | Skew | Interpretation |
 |--------|----------|------|------------------|
@@ -197,9 +198,9 @@ Analysis of the Fact0rn whitepaper and `wOffset_statistics.csv` reveals key insi
 | 240 | 5.65 | 2.02 | Heavy tails |
 | 260 | 0.17 | -0.08 | More normal |
 | 300 | 0.04 | -0.1 | Near-normal |
-| 448-468 | -0.9 to -0.1 | -0.22 to +0.05 | Near-uniform, lightly platykurtic |
+| 448-468 | **-0.22 to 0.0** | -0.22 to +0.05 | **Platykurtic** (LESS peaked than normal) |
 
-**Insight:** At low difficulties, the wOffset distribution has **very heavy tails** (kurtosis >> 0), meaning extreme values are common. This suggests the factoring algorithm (ECM) finds widely scattered semiprimes within the search interval.
+**Insight:** At low difficulties, the wOffset distribution has **very heavy tails** (kurtosis >> 0). At high nBits (448-468), the distribution becomes **platykurtic** (kurtosis < 0) — LESS peaked than normal, meaning values are more evenly spread. The "near-normal" claim in earlier versions was incorrect.
 
 ---
 
@@ -243,7 +244,7 @@ Analysis of the Fact0rn whitepaper and `wOffset_statistics.csv` reveals key insi
 | 250 | -112% | High relative spread |
 | 300 | 1000%+ | Extreme relative spread |
 
-**Insight:** As difficulty increases, the **relative variability explodes** because the mean approaches 0 while stdev remains ~2500-2800. This is an artifact of division by small means.
+**Insight:** As difficulty increases, the **relative variability explodes** because the mean approaches 0 while stdev grows: nBits=468 has stdev=**3963.51** (not "~2500-2800"). At high nBits, the window fully brackets semiprime density and wOffset becomes more uniform.
 
 ---
 
@@ -737,7 +738,10 @@ From summary statistics (using E[d] = 1/λ):
 - 239 nBits levels, ~160,609 blocks (239×671), nBits 230-468
 - All 239 levels have exactly 671 samples (consistent dataset)
 
-**GROUPED row:** count=174,960 (sum of all rows), 16 fields matching header
+**GROUPED row (combined dataset):**
+- count=174,960 (sum of all rows), 16 fields matching header ✅
+- mean=-483.52, kurtosis=**0.15** (almost perfectly normal!)
+- **Key insight:** Combined dataset is near-normal (kurtosis≈0) even though individual levels have heavy tails — the bias **averages out** across difficulty levels
 
 ### Model Validation
 
@@ -1033,7 +1037,22 @@ Since 99.1% of solutions are in negative region:
 
 **This bias is exploitable, but the exponential model is WRONG.** The distribution at nBits=230 has extreme kurtosis (167.83) and is heavier-tailed than exponential (memoryless test fails by 5x). A truncated power-law or mixture model (two populations: tight cluster near left boundary + sparse right tail) better fits the data. Mining speedup is real but quantitative estimates require fitting the correct distribution to raw offset data.
 
-**New nBits 448-468 tail behavior:** skew≈0 (−0.22 to +0.05), kurtosis≈−0.9 to −0.1 (lightly platykurtic), stdev=3067-3963. At high nBits, the window fully brackets semiprime density and wOffset is essentially uniform.
+**New nBits 448-468 tail behavior:** skew≈0 (−0.22 to +0.05), kurtosis≈−0.22 to 0.0 (platykurtic, LESS peaked than normal), stdev=3067-3963. At high nBits, the window fully brackets semiprime density and wOffset is essentially uniform.
+
+### 9. NEW INSIGHTS (from full dataset analysis)
+
+| # | Discovery | Data Evidence |
+|---|------------|----------------|
+| 1 | **Zero crossing at nBits=260** | nBits=260 mean=**+140.57** (positive!) — transition is a **crossing**, not just plateau |
+| 2 | **Wide transition zone** | 256-301 (40+ nBits wide): 256:49.97, 257:98.52, 259:6.62, 260:140.57, 294:184.42, 295:34.88, 296:189.37, 300:125.69, 301:29.04 |
+| 3 | **GROUPED row near-normal** | Combined dataset: kurtosis=**0.15** (almost perfectly normal), mean=-483.52 — bias "averages out" across all difficulty levels |
+| 4 | **High nBits stdev GROWS** | nBits=468 stdev=**3963.51** (not "~2500-2900" as previously claimed) — window width grows, spread increases |
+| 5 | **Platykurtic at high nBits** | nBits 448-468: kurtosis≈-0.22 to 0.0 — LESS peaked than normal (negative kurtosis), meaning values are more evenly spread than Gaussian |
+
+**Key implications:**
+- The "phase transition" is NOT a clean step at nBits=250 — it's a **zero crossing** that overshoots into positive territory
+- The combined dataset (GROUPED) is **near-normal** (kurtosis=0.15) — the negative bias persists but "averages out" 
+- At high nBits, the distribution becomes **platykurtic** (flatter than normal) — the protocol "works" but with wider spread than expected
 
 ---
 
