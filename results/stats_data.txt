@@ -243,3 +243,9 @@ nBits count min median mean mode stdev skew kurtosis pvariance variance max mad 
 grouped nBits stats:
 min median mean mode stdev skew kurtosis pvariance variance max mad cv medad stderr
 -7484 -675 -483.54 -3613 3077.11 0.15 -0.86 9468522.69 9468577 7479 2605.29 -636.38 2507 7.35
+
+wOffset sign distribution:
+  Negative (<0): 99289 (56.7%)
+  Zero (=0):     19 (0.0%)
+  Positive (>0): 75891 (43.3%)
+  Total: 175199
