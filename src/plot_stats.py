@@ -40,16 +40,22 @@ def stderr(data):
 
 # Parse debug.log
 histo = {}
+K = set()
 for line in open(sys.argv[1], "r"):
     if "UpdateTip" in line:
         D = line.split()
-        if len(D) > 7:
-            bits = D[6].split("=")[1]
-            wOffset = int(D[7].split("=")[1])
-            if bits in histo:
-                histo[bits].append(wOffset)
-            else:
-                histo[bits] = []
+        Hash = D[3].split("=")[1]
+        height = D[4].split("=")[1]
+        key = (Hash,height)
+        if key not in K:
+            if len(D) > 7:
+                bits = D[6].split("=")[1]
+                wOffset = int(D[7].split("=")[1])
+                if bits in histo:
+                    histo[bits].append(wOffset)
+                else:
+                    histo[bits] = []
+            K.add(key)
 
 # Extract statistics
 bits_sorted = sorted(histo.keys(), key=int)

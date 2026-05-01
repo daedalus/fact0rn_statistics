@@ -722,7 +722,7 @@ From summary statistics (using E[d] = 1/λ):
 
 | nBits | ñ=16nBits | E[d] = ñ+E[offset] | λ = 1/E[d] |
 |--------|----------|---------------------|----------------|
-| 230 | 3680 | 177.4 | 0.005637 (MLE: 0.005433, E[d]=184.1 from raw data) |
+| 230 | 3680 | 138.9 | 0.007200 (MLE: 0.005433, E[d]=184.1 from raw data) |
 | 231 | 3696 | 334.2 | 0.002992 |
 | 232 | 3712 | 147.5 | 0.006781 |
 | 233 | 3728 | 384.3 | 0.002602 |
@@ -731,8 +731,8 @@ From summary statistics (using E[d] = 1/λ):
 | 250 | 4000 | 1995.8 | 0.000501 |
 | 260 | 4160 | ~4300 | 0.000233 (exponential model questionable at high nBits) |
 
-**Average λ in stable range (230-300):** 0.000925 (std dev: 0.001508)  
-**Stability:** VARIABLE (std/mean = 163%) — simple exponential model isn't perfect
+**Average λ in stable range (230-300):** 0.000947 (std dev: 0.001587)  
+**Stability:** VARIABLE (std/mean = 168%) — simple exponential model isn't perfect
 
 **Dataset versions:**
 - z1: 218 nBits levels, 152,012 blocks (some double-counted), nBits 230-447
@@ -848,7 +848,7 @@ for n in shuffled_candidates:
 
 | nBits | Search Space | Expected Work (1/λ) | 80% Mass Range | Speedup vs Uniform (full window) | One-sided (left only) |
 |--------|--------------|----------------------|-----------------|-------------------|------------------------|
-| 230 | 7360 positions | ~177 positions | d ∈ [0, 285] | 41.5x (2*ñ/E[d]) | 20.8x (ñ/E[d]) |
+| 230 | 7360 positions | ~139 positions | d ∈ [0, 223] | 53.0x (2*ñ/E[d]) | 26.5x (ñ/E[d]) |
 | 231 | 7392 positions | ~334 positions | d ∈ [0, 537] | 22.1x | 11.1x |
 | 232 | 7424 positions | ~148 positions | d ∈ [0, 237] | 50.3x | 25.2x |
 | 233 | 7456 positions | ~384 positions | d ∈ [0, 618] | 19.4x | 9.7x |
@@ -856,7 +856,7 @@ for n in shuffled_candidates:
 | 250 | 8000 positions | ~600 positions | - | 13.3x | 6.7x |
 | 300 | 9600 positions | ~720 positions | - | 8.9x | 4.5x |
 
-**Note:** 41.5x assumes current miner scans full window symmetrically; if already scanning downward from left boundary, relevant speedup is 20.8x (one-sided).
+**Note:** 53.0x assumes current miner scans full window symmetrically (2*ñ/E[d] = 7360/138.9); if already scanning downward from left boundary, relevant speedup is 26.5x (ñ/E[d] = 3680/138.9).
 
 ### Files for Empirical Analysis
 

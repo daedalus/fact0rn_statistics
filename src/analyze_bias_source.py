@@ -60,7 +60,7 @@ def analyze_bias_across_nbits(data):
         })
         
         if 230 <= nBits <= 260:
-            print(f"{nBits:5d} | {mean_off:>11.1f} | {E_d:>5.1f} | {lam:>.6f}   | {neg_pct:>7.1f}%  | {row['kurtosis']:>7.1f}")
+            print(f"{nBits:5d} | {mean_off:>11.1f} | {E_d:>5.1f} | {lam:>.6f}   | {neg_pct:>7.1f}%  | {float(row['kurtosis']):>7.1f}")
     
     return results
 
