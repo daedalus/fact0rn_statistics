@@ -384,7 +384,7 @@ This "crossing zero" suggests the gHash-to-semiprime relationship **overshoots**
 5. ⏱️ **Generally stable block times**: ~733 blocks per nBits for most difficulty levels (30min target)
 6. 🎯 **Sweet spot**: nBits 250-252 has wOffset closest to 0 (optimal mining)
 7. 📉 **Stdev/IQR explosion**: Post-transition, stdev grows from ~400 to ~4000+ (fills full range)
-8. 📊 **GROUPED row**: mean=-483, median=-675, stdev=3077 — dominated by post-transition regime (high-variance, near-zero mean)
+8. 📊 **GROUPED row**: skew=0.15, kurtosis=-0.86, mean=-483.54, stdev=3077.11 — near-normal skew, slightly platykurtic
 
 ---
 
