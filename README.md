@@ -862,7 +862,7 @@ From summary statistics (using E[d] = 1/λ):
 
 **GROUPED row (combined dataset):**
 - count=175,199 (sum of all rows), 16 fields matching header ✅
-- mean=-483.54, kurtosis=**0.15** (almost perfectly normal!)
+- skew=**0.15**, kurtosis=**-0.86** (near-normal skew, slightly platykurtic)
 - **Key insight:** Combined dataset is near-normal (kurtosis≈0) even though individual levels have heavy tails — the bias **averages out** across difficulty levels
 
 ### Model Validation
@@ -1167,13 +1167,13 @@ Since 99.5% of solutions are in negative region:
 |---|------------|----------------|
 | 1 | **Zero crossing at nBits=260** | nBits=260 mean=**+140.57** (positive!) — transition is a **crossing**, not just plateau |
 | 2 | **Wide transition zone** | 256-301 (40+ nBits wide): 256:49.97, 257:98.52, 259:6.62, 260:140.57, 294:184.42, 295:34.88, 296:189.37, 300:125.69, 301:29.04 |
-| 3 | **GROUPED row near-normal** | Combined dataset: kurtosis=**0.15** (almost perfectly normal), mean=-483.52 — bias "averages out" across all difficulty levels |
+| 3 | **GROUPED row** | Combined dataset: skew=**0.15**, kurtosis=**-0.86**, mean=**-483.54**, stdev=**3077.11** — bias "averages out" across all difficulty levels |
 | 4 | **High nBits stdev GROWS** | nBits=468 stdev=**3963.51** (not "~2500-2900" as previously claimed) — window width grows, spread increases |
 | 5 | **Platykurtic at high nBits** | nBits 448-468: kurtosis≈-0.22 to 0.0 — LESS peaked than normal (negative kurtosis), meaning values are more evenly spread than Gaussian |
 
 **Key implications:**
 - The "phase transition" is NOT a clean step at nBits=250 — it's a **zero crossing** that overshoots into positive territory
-- The combined dataset (GROUPED) is **near-normal** (kurtosis=0.15) — the negative bias persists but "averages out" 
+- The combined dataset (GROUPED) is **near-normal** (skew=0.15, kurtosis=-0.86) — the negative bias persists but "averages out" 
 - At high nBits, the distribution becomes **platykurtic** (flatter than normal) — the protocol "works" but with wider spread than expected
 
 ---
