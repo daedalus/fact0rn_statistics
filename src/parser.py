@@ -75,18 +75,21 @@ def extract_w_values(debug_log_path, target_nBits=None):
         return {}
     return data
 
-
-def main():
-    histo = parse_debug_log(sys.argv[1])
+def main(debug_log_path=None):
+    """Main function - takes optional debug_log_path as argument"""
+    if debug_log_path is None:
+        debug_log_path = sys.argv[1]
+    
+    histo = parse_debug_log(debug_log_path)
     valid_rows = sum(len(v) for v in histo.values())
     sys.stderr.write(f"Total valid rows {valid_rows}\n")
-    
+
     print("For each nBits calculate their wOffset stats:")
     print("nBits count min median mean mode stdev skew kurtosis pvariance variance max mad cv medad stderr p5 p25 p75 p95 iqr avg_abs_dev sq_dev_mean rms mag mage trend_slope gvp cv_rate lability_index")
     for bits in histo:
         h = histo[bits]
         print(bits, len(h), min(h), median(h), round(mean(h),2), mode(h), round(stdev(h),2), round(skew(h),2), round(kurtosis(h),2), round(pvariance(h),2), round(variance(h)), max(h), round(mad(h),2), round(cv(h),2), round(medad(h),2), round(stderr(h),2), round(p5(h),2), round(p25(h),2), round(p75(h),2), round(p95(h),2), round(iqr(h),2), round(avg_abs_dev(h),2), round(sq_dev_mean(h),2), round(rms(h),2), round(mag(h),2), round(mage(h),2), round(trend_slope(h),2), round(gvp(h),2), round(cv_rate(h),2), round(lability_index(h),2))
-    
+
     print("grouped nBits stats:")
     print("min median mean mode stdev skew kurtosis pvariance variance max mad cv medad stderr p5 p25 p75 p95 iqr avg_abs_dev sq_dev_mean rms mag mage trend_slope gvp cv_rate lability_index")
     h = []
@@ -95,16 +98,15 @@ def main():
     print(min(h), median(h), round(mean(h),2), mode(h), round(stdev(h),2), round(skew(h),2), round(kurtosis(h),2), round(pvariance(h),2), round(variance(h)), max(h), round(mad(h),2), round(cv(h),2), round(medad(h),2), round(stderr(h),2), round(p5(h),2), round(p25(h),2), round(p75(h),2), round(p95(h),2), round(iqr(h),2), round(avg_abs_dev(h),2), round(sq_dev_mean(h),2), round(rms(h),2), round(mag(h),2), round(mage(h),2), round(trend_slope(h),2), round(gvp(h),2), round(cv_rate(h),2), round(lability_index(h),2))
 
     # Count negative, zero, positive offsets
-    neg = sum(1 for x in h if x < 0)
-    zero = sum(1 for x in h if x == 0)
-    pos = sum(1 for x in h if x > 0)
+    neg = sum(1 for x in h if x <0)
+    zero = sum(1 for x in h if x ==0)
+    pos = sum(1 for x in h if x >0)
     total = len(h)
-    sys.stderr.write(f"\nwOffset sign distribution:\n")
-    sys.stderr.write(f"  Negative (<0): {neg} ({neg/total*100:.1f}%)\n")
-    sys.stderr.write(f"  Zero (=0):     {zero} ({zero/total*100:.1f}%)\n")
-    sys.stderr.write(f"  Positive (>0): {pos} ({pos/total*100:.1f}%)\”")
-    sys.stderr.write(f"  Total: {total}\n")
-
+    print(f"\nwOffset sign distribution:")
+    print(f"  Negative (<0): {neg} ({neg/total*100:.1f}%)")
+    print(f"  Zero (=0):     {zero} ({zero/total*100:.1f}%)")
+    print(f"  Positive (>0): {pos} ({pos/total*100:.1f}%)")
+    print(f"  Total: {total}")
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1] if len(sys.argv) > 1 else None)

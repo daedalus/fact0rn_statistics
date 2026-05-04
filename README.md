@@ -1,7 +1,7 @@
 # Fact0rn wOffset Statistics
 
 ## Overview
-Parses Fact0rn's `~/.factorn/debug.log` to extract `nBits` and `wOffset` values from `UpdateTip` log entries, computes statistical metrics per `nBits` group, and generates visualizations.
+Parses Fact0rn's `~/.factorn/debug.log` to extract `nBits` and `wOffset` values from `UpdateTip` log entries, computes statistical metrics per `nBits` group, and generates visualizations. The pipeline cleans `results/` on every run to ensure all outputs are fresh.
 
 ## The Math Problem
 
@@ -17,7 +17,7 @@ Fact0rn is a blockchain whose Proof of Work is based on **integer factorization*
 5. **Factoring**: Miners test candidates in S using the **Elliptic Curve Method (ECM)** to find semiprimes (products of two primes).
 6. **Whitepaper assumption**: gHash is "random enough" that semiprimes should be **uniformly distributed** in S, making wOffset roughly symmetric around 0.
 
-**What this project discovered**: The actual wOffset distribution is **heavily biased** toward negative values (~220x (nBits=230) more solutions in the negative region), revealing structural properties not captured in the whitepaper's random oracle model.
+**What this project discovered**: The actual wOffset distribution is **heavily biased** toward negative values (~220x denser in the negative region for nBits=230), revealing structural properties not captured in the whitepaper's random oracle model.
 
 ## Project Structure
 ```
@@ -68,7 +68,6 @@ fact0rn_statistics/
 
 ### Option 1: Full Pipeline (Recommended)
 ```bash
-cd src
 python3 main.py ~/.factorn/debug.log
 # Or with options:
 python3 main.py ~/.factorn/debug.log --skip-gnuplot --nBits 230
@@ -77,9 +76,9 @@ Options:
 - `debug_log`: Path to debug.log (default: ~/.factorn/debug.log)
 - `--skip-gnuplot`: Skip Gnuplot step
 - `--nBits`: nBits value for analysis scripts (default: 230)
-- `--output-dir`: Output directory (default: ../results)
+- `--output-dir`: Output directory (default: results/)
 
-This runs all analysis scripts and logs output to `results/pipeline.log`.
+This runs all analysis scripts, **cleans `results/` first** to ensure fresh outputs, and logs to `results/pipeline.log`.
 
 ### Option 2: Python/Matplotlib (Standalone)
 ```bash
@@ -762,7 +761,7 @@ P(d) ∝ e^(-λd) for d ∈ [0, ñ]
 
 ---
 
-*This analysis reveals Fact0rn's PoW has **extreme structural bias** (220x density ratio!) not captured in the whitepaper's random oracle model. The negative region is virtually the ONLY place where semiprimes are found!*
+*This analysis reveals Fact0rn's PoW has **extreme structural bias** (~220x density ratio at nBits=230!) not captured in the whitepaper's random oracle model. The negative region is virtually the ONLY place where semiprimes are found **at LOW nBits (230-248 only)**!*
 
 ---
 
@@ -1030,7 +1029,7 @@ cat results/pipeline.log
 
 ### 🔍 KEY DISCOVERY: 220x Density Ratio (nBits=230)!
 
-**99.5% vs 0.5% = 220x denser in negative region!** (879 vs 4 samples, not 220x as previously claimed)
+**99.5% vs 0.5% = ~220x denser in negative region!** (nBits=230 only: 879 vs 4 samples)
 
 | Metric | Negative Region (W-16nBits to W) | Positive Region (W to W+16nBits) | Ratio |
 |--------|----------------------------------|-------------------------------|-------|
